@@ -1,4 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxHPywU0EjrzXdqcUmzMAGDunFysvv56SwHryAO9YrRZ1ULJ4-3ny8szEEcSX3WfQb8gQ/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxShjzdcBWrQWMAZvRz1gVhl4gJ7bHjsrCQzTBnoSFJXijPbkFMZMyuF1nTylKhZGMT/exec"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
@@ -22,7 +22,6 @@ function switchTab(tabId, element) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// 신규: 숙소 구글 맵 검색 기능
 function searchAccommodation() {
     const loc = document.getElementById('travel-location').value;
     if(!loc) return alert("상세 여행지를 먼저 입력해주세요!");
@@ -30,7 +29,6 @@ function searchAccommodation() {
     window.open(searchUrl, '_blank');
 }
 
-// 신규: 앱 구동/새로고침 시 서버에서 데이터를 불러와 갤러리를 렌더링하는 함수
 async function fetchServerData() {
     showLoading(true, "서버에서 여행 기록을 불러오는 중...");
     try {
@@ -47,12 +45,11 @@ async function fetchServerData() {
     }
 }
 
-// 갤러리 렌더링 로직
+// 수정됨: 갤러리 렌더링 시 삭제 버튼 탑재
 function renderGallery(dataRows) {
     const gallery = document.getElementById('photo-gallery');
     gallery.innerHTML = '';
     
-    // 2번째 열(인덱스 1)이 'PHOTO'인 행만 추출
     const photos = dataRows.filter(row => row[1] === "PHOTO");
     
     if (photos.length === 0) {
@@ -60,22 +57,46 @@ function renderGallery(dataRows) {
         return;
     }
     
-    // 최신 사진이 위로 오도록 배열 뒤집기
     photos.reverse().forEach(p => {
         const dateObj = new Date(p[0]);
         const dateStr = `${dateObj.getFullYear()}.${dateObj.getMonth()+1}.${dateObj.getDate()} ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2,'0')}`;
         const locStr = p[2];
-        const imgUrl = p[3]; // 저장된 특수 이미지 링크
+        const imgUrl = p[3]; 
         
         const html = `
             <div class="photo-card">
-                <img src="${imgUrl}" alt="여행 사진" onerror="this.src='https://via.placeholder.com/150?text=Image+Load+Error'">
+                <button class="photo-delete-btn" onclick="deletePhoto('${imgUrl}')"><i class="fa-solid fa-trash"></i></button>
+                <img src="${imgUrl}" alt="여행 사진" onerror="this.src='https://via.placeholder.com/150?text=삭제된+이미지'">
                 <div class="photo-loc"><i class="fa-solid fa-location-dot" style="color:var(--accent);"></i> ${locStr}</div>
                 <div class="photo-date">${dateStr}</div>
             </div>
         `;
         gallery.innerHTML += html;
     });
+}
+
+// 신규: 갤러리 사진 원격 삭제 기능
+async function deletePhoto(url) {
+    if(!confirm("이 사진을 갤러리에서 완전히 삭제하시겠습니까?\n(구글 시트와 드라이브에서 삭제됩니다.)")) return;
+
+    showLoading(true, "사진 기록을 삭제 중...");
+    const payload = { action: "DELETE_PHOTO", fileUrl: url };
+
+    try {
+        const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const result = await response.json();
+        
+        if(result.result === "success") {
+            alert("사진이 성공적으로 삭제되었습니다! 🗑️");
+            fetchServerData(); // 화면 즉시 새로고침
+        } else {
+            alert("삭제 실패: " + result.message);
+        }
+    } catch (e) {
+        alert("통신 오류가 발생했습니다.");
+    } finally {
+        showLoading(false);
+    }
 }
 
 function buildDynamicSpots(location) {
@@ -169,7 +190,6 @@ function buildDynamicPack(location, destType) {
     });
 }
 
-// 수정됨: 숙소를 반영한 디테일한 맞춤형 일정 생성
 function buildDynamicSchedule(days, location, destType, depTime, accommodation) {
     const container = document.getElementById('schedule-container');
     container.innerHTML = '';
@@ -180,7 +200,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation) 
     const accName = accommodation ? accommodation : "예약한 숙소";
     const locLower = location.toLowerCase();
 
-    // 도시별 디테일 모의 데이터 세팅
     let s_morning = "현지 명소 둘러보기";
     let s_lunch = "현지 최고 맛집 런치";
     let s_afternoon = "주요 랜드마크 방문 및 자유시간";
@@ -212,7 +231,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation) 
         let dayHtml = `
         <div class="timeline">
             <div class="timeline-day">Day ${i} - ${location} (${themeStr})</div>
-            
             <div class="timeline-item">
                 <div class="time">${isFirstDay ? depTime : '09:30'}</div>
                 <div class="content">
@@ -220,7 +238,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation) 
                     <p>${isFirstDay ? '여권 및 티켓 확인 필수' : '여유로운 아침 식사 및 컨디션 조절'}</p>
                 </div>
             </div>
-            
             <div class="timeline-item">
                 <div class="time">${isFirstDay ? '14:00' : '11:00'}</div>
                 <div class="content">
@@ -228,7 +245,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation) 
                     <p>${isFirstDay ? '바우처 준비 및 로비 대기' : s_desc_am}</p>
                 </div>
             </div>
-
             <div class="timeline-item">
                 <div class="time">${isFirstDay ? '15:30' : '13:00'}</div>
                 <div class="content">
@@ -236,7 +252,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation) 
                     <p>미리 예약 또는 웨이팅 확인 필수</p>
                 </div>
             </div>
-            
             <div class="timeline-item">
                 <div class="time">${isFirstDay ? '17:00' : '15:00'}</div>
                 <div class="content">
@@ -244,7 +259,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation) 
                     <p>체력 소모: 보통 | 사진 스팟 집중 공략</p>
                 </div>
             </div>
-            
             <div class="timeline-item">
                 <div class="time">19:00</div>
                 <div class="content">
@@ -252,7 +266,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation) 
                     <p>저녁 식사 후 내일 일정 점검</p>
                 </div>
             </div>
-
             <div class="timeline-item">
                 <div class="time">21:30</div>
                 <div class="content">
@@ -280,7 +293,7 @@ async function generatePlan() {
     const depTime = document.getElementById('travel-departure').value;
     const days = document.getElementById('travel-days').value;
     const budget = document.getElementById('travel-budget').value;
-    const accom = document.getElementById('travel-accommodation').value; // 신규: 숙소 값
+    const accom = document.getElementById('travel-accommodation').value; 
     
     if (!members || !type || !loc || !dest || !depTime || !days || !budget) {
         alert("모든 설정을 빠짐없이 입력해주세요! 📝");
@@ -315,7 +328,6 @@ async function generatePlan() {
         const result = await response.json();
         
         if(result.result === "success") {
-            // 변경됨: 숙소 데이터를 파라미터로 넘김
             buildDynamicSchedule(days, loc, dest, depTime, accom);
             buildDynamicPack(loc, dest); 
             buildDynamicSpots(loc);
@@ -548,7 +560,6 @@ function uploadPhotoData(file, locationInfo) {
             
             if(result.result === "success") {
                 alert(`성공적으로 사진이 갤러리에 저장되었습니다! 📸\n(기록된 장소: ${locationInfo})`);
-                // 사진 업로드 성공 시 갤러리 자동 리로드
                 fetchServerData();
             } else {
                 alert("실패: " + result.message);
@@ -563,7 +574,6 @@ function uploadPhotoData(file, locationInfo) {
     reader.readAsDataURL(file);
 }
 
-// 신규: 앱 최초 로딩 시 갤러리 데이터 불러오기 (사용자가 원할 때 우측 상단 버튼으로도 가능)
 window.addEventListener('load', () => {
     fetchServerData();
 });
