@@ -379,38 +379,50 @@ async function syncPackData() {
     finally { showLoading(false); }
 }
 
-// 신규: GPS 센서를 활용한 스마트 사진 업로드 기능
+// 신규: Reverse Geocoding 로직 추가 (좌표 -> 지역명 변환)
 async function handlePhotoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    showLoading(true, "GPS 위치 정보 확인 중...");
+    showLoading(true, "GPS 기반 현지 지역명 변환 중...");
 
-    // 스마트폰 GPS 접근 로직
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                // GPS 좌표 성공적으로 획득
-                const lat = position.coords.latitude.toFixed(5);
-                const lon = position.coords.longitude.toFixed(5);
-                const locationStr = `위도: ${lat}, 경도: ${lon}`;
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                let locationStr = `위도: ${lat.toFixed(5)}, 경도: ${lon.toFixed(5)}`;
+
+                try {
+                    // 빅데이터클라우드 무료 API를 활용하여 지역명 추출 (API 키 불필요)
+                    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
+                    const data = await response.json();
+                    
+                    let regionName = "";
+                    if (data.principalSubdivision) regionName += data.principalSubdivision + " ";
+                    if (data.locality) regionName += data.locality;
+                    
+                    if (regionName.trim() !== "") {
+                        // 예: "서울특별시 강남구 (37.xxxx, 127.xxxx)"
+                        locationStr = `${regionName.trim()} (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                    }
+                } catch (e) {
+                    console.warn("지역명 변환 실패, 기본 위경도 데이터 사용");
+                }
+
                 uploadPhotoData(file, locationStr);
             },
             (error) => {
-                // GPS 권한 거부 또는 실패 시
                 console.warn("GPS 수집 오류:", error);
                 uploadPhotoData(file, "위치 정보 접근 불가 (수동 확인 필요)");
             },
-            // 정확도 높임, 시간 초과 10초 설정
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     } else {
-        // GPS를 지원하지 않는 브라우저/기기
         uploadPhotoData(file, "GPS 기능 미지원 기기");
     }
 }
 
-// 신규: 추출된 GPS 정보와 사진을 구글 서버로 전송하는 서브 함수
 function uploadPhotoData(file, locationInfo) {
     showLoading(true, "사진을 구글 드라이브에 저장 중...");
     const reader = new FileReader();
@@ -422,7 +434,7 @@ function uploadPhotoData(file, locationInfo) {
             imageBase64: base64Data, 
             mimeType: file.type,
             fileName: "photo_" + new Date().getTime() + ".jpg", 
-            location: locationInfo // 실제 추출된 위도/경도 데이터 탑재
+            location: locationInfo 
         };
 
         try {
@@ -430,7 +442,7 @@ function uploadPhotoData(file, locationInfo) {
             const result = await response.json();
             
             if(result.result === "success") {
-                alert(`성공적으로 사진이 저장되었습니다! 📸\\n(기록된 GPS: ${locationInfo})`);
+                alert(`성공적으로 사진이 저장되었습니다! 📸\n(기록된 장소: ${locationInfo})`);
             } else {
                 alert("실패: " + result.message);
             }
@@ -438,7 +450,7 @@ function uploadPhotoData(file, locationInfo) {
             alert("통신 오류가 발생했습니다."); 
         } finally { 
             showLoading(false); 
-            document.getElementById('camera-input').value = ''; // 다음 촬영을 위해 초기화
+            document.getElementById('camera-input').value = ''; 
         }
     };
     reader.readAsDataURL(file);
