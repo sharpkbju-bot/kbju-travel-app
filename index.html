@@ -90,6 +90,11 @@
                 </div>
 
                 <div class="input-group">
+                    <label>💬 추가 요청 사항 (AI 반영)</label>
+                    <textarea id="travel-requests" placeholder="예: 부모님이 걷기 힘들어하셔, 둘째 날은 꼭 해산물 식당을 넣어줘, 쇼핑은 빼줘 등 자유롭게 적어주세요." rows="3" style="width:100%; padding:14px; border:1px solid var(--border-color); border-radius:12px; font-family:inherit; resize:none; outline:none; font-size:14px;"></textarea>
+                </div>
+
+                <div class="input-group">
                     <label>⏰ 집에서 출발하는 시간</label>
                     <input type="time" id="travel-departure">
                 </div>
@@ -105,7 +110,7 @@
                     </div>
                 </div>
 
-                <button class="primary-btn" onclick="generatePlan()">✨ AI 맞춤형 상세 일정 생성하기</button>
+                <button class="primary-btn" onclick="generatePlan()">✨ AI 초정밀 일정 생성하기</button>
             </div>
         </section>
 
@@ -127,53 +132,29 @@
                 <h2>💸 실시간 예산 관리</h2>
                 <p>공동 지출 및 환율 자동 계산</p>
             </div>
-
             <div class="budget-summary card">
-                <div class="budget-row">
-                    <span>총 예산</span>
-                    <strong id="display-budget">0 원</strong>
-                </div>
-                <div class="budget-row">
-                    <span>사용 금액</span>
-                    <strong class="text-danger" id="used-budget">0 원</strong>
-                </div>
-                <div class="budget-row total">
-                    <span>남은 예산</span>
-                    <strong class="text-primary" id="remaining-budget">0 원</strong>
-                </div>
+                <div class="budget-row"><span>총 예산</span><strong id="display-budget">0 원</strong></div>
+                <div class="budget-row"><span>사용 금액</span><strong class="text-danger" id="used-budget">0 원</strong></div>
+                <div class="budget-row total"><span>남은 예산</span><strong class="text-primary" id="remaining-budget">0 원</strong></div>
             </div>
-
             <div class="card">
                 <h3>지출 내역 추가</h3>
-                <div class="input-group">
-                    <input type="text" id="expense-name" placeholder="내역 (예: 점심 식사)">
-                </div>
+                <div class="input-group"><input type="text" id="expense-name" placeholder="내역 (예: 점심 식사)"></div>
                 <div class="input-group row-group">
                     <input type="number" id="expense-amount" placeholder="금액" class="half-input">
                     <select id="expense-currency" class="half-input">
-                        <option value="KRW">KRW (원)</option>
-                        <option value="USD">USD ($)</option>
-                        <option value="JPY">JPY (¥)</option>
-                        <option value="EUR">EUR (€)</option>
-                        <option value="CNY">CNY (元)</option>
-                        <option value="VND">VND (₫)</option>
-                        <option value="THB">THB (฿)</option>
+                        <option value="KRW">KRW (원)</option><option value="USD">USD ($)</option><option value="JPY">JPY (¥)</option><option value="EUR">EUR (€)</option><option value="CNY">CNY (元)</option><option value="VND">VND (₫)</option><option value="THB">THB (฿)</option>
                     </select>
                 </div>
                 <button class="secondary-btn" onclick="addExpense()">내역 저장</button>
             </div>
-
             <div class="card" id="expense-history" style="display: none;">
-                <h3>지출 상세 내역</h3>
-                <div id="expense-list-content"></div>
+                <h3>지출 상세 내역</h3><div id="expense-list-content"></div>
             </div>
         </section>
 
         <section id="tab-pack" class="tab-content">
-            <div class="section-header">
-                <h2>🎒 스마트 준비물</h2>
-                <p>여행지 날씨 맞춤 필수 준비물</p>
-            </div>
+            <div class="section-header"><h2>🎒 스마트 준비물</h2><p>여행지 날씨 맞춤 필수 준비물</p></div>
             <div class="card checklist-card" id="pack-container">
                 <div class="add-item-box" id="pack-add-box">
                     <input type="text" id="pack-input" placeholder="수동으로 준비물 추가...">
@@ -184,57 +165,27 @@
         </section>
 
         <section id="tab-spots" class="tab-content">
-            <div class="section-header">
-                <h2>📸 큐레이션 & 사진</h2>
-                <p>취향 저격 로컬 스팟 및 사진 저장</p>
-            </div>
-            
-            <div id="spots-container">
-                <div style="text-align: center; color: var(--text-sub); padding: 50px 0; font-size: 14px;">
-                    설정 탭에서 여행지를 입력하시면<br>AI 맞춤형 명소가 큐레이션 됩니다.
-                </div>
-            </div>
-
+            <div class="section-header"><h2>📸 큐레이션 & 사진</h2><p>취향 저격 로컬 스팟 및 사진 저장</p></div>
+            <div id="spots-container"><div style="text-align: center; color: var(--text-sub); padding: 50px 0; font-size: 14px;">설정 탭에서 여행지를 입력하시면 AI 맞춤형 명소가 큐레이션 됩니다.</div></div>
             <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event)">
-            <button class="camera-btn" onclick="document.getElementById('camera-input').click()">
-                <i class="fa-solid fa-camera"></i> GPS 기반 사진 촬영 및 서버 저장
-            </button>
+            <button class="camera-btn" onclick="document.getElementById('camera-input').click()"><i class="fa-solid fa-camera"></i> GPS 기반 사진 촬영 및 서버 저장</button>
 
             <div class="section-header" style="margin-top: 40px; margin-bottom: 15px;">
-                <h2>🖼️ 나의 여행 갤러리</h2>
-                <p>내가 남긴 발자취를 감상하세요.</p>
+                <h2>🖼️ 나의 여행 갤러리</h2><p>내가 남긴 발자취를 감상하세요.</p>
             </div>
             <div id="photo-gallery" class="photo-grid">
-                <div style="grid-column: span 2; text-align: center; color: var(--text-sub); padding: 30px 0; font-size: 13px;">
-                    우측 상단 새로고침 아이콘을 누르시면<br>저장된 사진을 불러옵니다.
-                </div>
+                <div style="grid-column: span 2; text-align: center; color: var(--text-sub); padding: 30px 0; font-size: 13px;">우측 상단 새로고침 아이콘을 누르시면 저장된 사진을 불러옵니다.</div>
             </div>
-
         </section>
 
     </main>
 
     <nav class="bottom-nav">
-        <button class="nav-item active" onclick="switchTab('tab-home', this)">
-            <i class="fa-solid fa-house"></i>
-            <span>설정</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('tab-schedule', this)">
-            <i class="fa-regular fa-calendar-check"></i>
-            <span>일정</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('tab-budget', this)">
-            <i class="fa-solid fa-calculator"></i>
-            <span>예산</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('tab-pack', this)">
-            <i class="fa-solid fa-suitcase"></i>
-            <span>준비물</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('tab-spots', this)">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>명소</span>
-        </button>
+        <button class="nav-item active" onclick="switchTab('tab-home', this)"><i class="fa-solid fa-house"></i><span>설정</span></button>
+        <button class="nav-item" onclick="switchTab('tab-schedule', this)"><i class="fa-regular fa-calendar-check"></i><span>일정</span></button>
+        <button class="nav-item" onclick="switchTab('tab-budget', this)"><i class="fa-solid fa-calculator"></i><span>예산</span></button>
+        <button class="nav-item" onclick="switchTab('tab-pack', this)"><i class="fa-solid fa-suitcase"></i><span>준비물</span></button>
+        <button class="nav-item" onclick="switchTab('tab-spots', this)"><i class="fa-solid fa-map-location-dot"></i><span>명소</span></button>
     </nav>
 
     <script src="app.js"></script>
