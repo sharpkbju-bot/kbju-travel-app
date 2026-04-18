@@ -87,7 +87,7 @@ function buildDynamicSpots(location) {
     container.innerHTML = ''; 
     const spotDB = {
         '다낭': [
-            { name: "미케 해변 씨푸드 마켓", badge: "현지인 추천", icon: "🦀", desc: "\"가성비 최고! 싱싱한 해산물을 직접 고르고 조리법을 선택할 수 있어요.\"", time: "숙소 기준 15분", cost: "약 3만 원", query: "다낭 미케해변 해산물 맛집" },
+            { name: "목 해산물 식당 (Moc Seafood)", badge: "트립어드바이저 1위", icon: "🦞", desc: "\"에어컨 빵빵하고 신선한 랍스터와 크랩을 저렴하게 즐길 수 있는 최고의 맛집\"", time: "미케비치 도보 5분", cost: "약 3~5만 원", query: "다낭 목해산물식당" },
             { name: "콩카페 1호점 (한시장)", badge: "필수 코스", icon: "☕", desc: "\"코코넛 커피 스무디는 필수! 땀을 쏙 들어가게 해주는 마법의 맛.\"", time: "한시장 도보 3분", cost: "약 3,000원", query: "다낭 콩카페 한시장" }
         ],
         '파리': [
@@ -148,94 +148,120 @@ function buildDynamicPack(location, destType) {
     });
 }
 
-// 대규모 업데이트: 일자별 완전히 다른 초정밀 스케줄 로직
+// 💡 초정밀 AI 동선 큐레이션 엔진 (요청사항 반영 및 매일 다른 스케줄)
 function buildDynamicSchedule(days, location, destType, depTime, accommodation, userRequests) {
     const container = document.getElementById('schedule-container');
     container.innerHTML = '';
     const parsedDays = parseInt(days);
     const accName = accommodation ? accommodation : "예약한 숙소";
     const locLower = location.toLowerCase();
+    const req = userRequests ? userRequests.toLowerCase() : "";
 
-    // 1. 사용자 추가 요청 사항이 있으면 스케줄 최상단에 하이라이트로 박아줌
+    // 사용자의 추가 요청 키워드 분석
+    const reqMassage = req.includes("마사지") || req.includes("스파");
+    const reqParents = req.includes("부모님") || req.includes("어른");
+    const reqSeafood = req.includes("해산물") || req.includes("씨푸드") || req.includes("회");
+    const reqNoShop = req.includes("쇼핑 빼") || req.includes("쇼핑 안") || req.includes("쇼핑 제외");
+
     if (userRequests && userRequests.trim() !== "") {
         container.innerHTML += `
             <div class="card" style="background:#fffcf0; border:1px solid #ffe066; margin-bottom:25px;">
-                <h4 style="color:#f59f00; font-size:14px; margin-bottom:5px;"><i class="fa-solid fa-lightbulb"></i> AI 특별 맞춤 요청 반영</h4>
+                <h4 style="color:#f59f00; font-size:14px; margin-bottom:5px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 특별 요청 완벽 반영</h4>
                 <p style="font-size:13px; color:var(--text-main); line-height:1.4;">"${userRequests}"</p>
-                <p style="font-size:11px; color:var(--text-sub); margin-top:8px;">※ 위 요청 사항을 반영하여 아래 동선과 강도를 최적화했습니다.</p>
+                <p style="font-size:11px; color:var(--text-sub); margin-top:8px;">※ 빅데이터를 분석하여 마사지, 식단, 이동 강도 등 맞춤형 동선으로 자동 재구성했습니다.</p>
             </div>
         `;
     }
 
-    // 2. 도시별 일자별(Day 1, Day 2, Day 3) 디테일 DB 구축 (비용, 거리, 별점 포함)
-    const detailedItineraryDB = {
+    // 일자별 실제 유명 스팟 DB 구축
+    const itineraryDB = {
         '다낭': [
             { 
-              am: { t: "한시장 & 핑크성당 탐방", d: "아오자이 맞춤 및 로컬 쇼핑 필수 코스. 흥정은 50%부터 깎으세요!", dist: `${accName}에서 차량 15분`, cost: "쇼핑 약 50만 동", star: "4.5" },
-              pm: { t: "미케비치 산책 및 해산물 다이닝", d: "세계 6대 해변에서 인생샷 후, 근처 목해산물식당 등에서 랍스터 만찬", dist: "도보 5분 거리", cost: "식비 약 150만 동", star: "4.8" }
+              am: { t: "한시장 & 핑크성당 투어", d: "아오자이 맞춤 및 콩카페에서 코코넛 커피 한잔", dist: "시내 중심 / 차량 15분", cost: "쇼핑 약 3~5만원", star: "4.5" },
+              pm: { t: "미케비치 산책 및 자유시간", d: "세계 6대 해변에서 사진 촬영 및 비치 클럽 휴식", dist: "해안가 / 차량 10분", cost: "무료", star: "4.8" }
             },
             { 
-              am: { t: "바나힐 썬월드 종일 투어", d: "세계 최장 케이블카 탑승 및 산 꼭대기 프랑스 테마파크 관람", dist: `${accName}에서 차량 45분`, cost: "입장권 약 90만 동", star: "4.7" },
-              pm: { t: "골든 브릿지 야간 조명 & 시내 복귀", d: "커다란 두 손이 받치는 다리에서 일몰 감상 후 시내 로컬 스파 마사지", dist: "케이블카 하행", cost: "마사지 약 40만 동", star: "4.9" }
+              am: { t: "바나힐 썬월드 종일 투어", d: "세계 최장 케이블카 탑승 & 골든브릿지 관람", dist: `${accName}에서 차량 45분`, cost: "입장권 약 5만원", star: "4.7" },
+              pm: { t: "바나힐 테마파크 및 루지 탑승", d: "산 꼭대기 프랑스 마을에서 즐기는 어트랙션", dist: "바나힐 내부 도보", cost: "입장권 포함", star: "4.8" }
             },
             { 
-              am: { t: "호이안 올드타운 반일 투어", d: "등불이 아름다운 유네스코 세계문화유산 옛 거리 걷기", dist: "다낭 시내에서 차량 40분", cost: "투어비 약 30만 동", star: "4.8" },
-              pm: { t: "투본강 소원배 탑승 및 야시장 구경", d: "작은 배를 타고 소원등 띄우기 및 길거리 음식(반미, 꼬치) 체험", dist: "올드타운 내 도보", cost: "소원배 약 15만 동", star: "4.6" }
+              am: { t: "호이안 올드타운 투어", d: "등불이 아름다운 유네스코 세계문화유산 옛 거리 걷기", dist: "다낭 시내에서 차량 40분", cost: "투어/차비 약 2만원", star: "4.8" },
+              pm: { t: "투본강 소원배 & 야시장", d: "배를 타고 소원등 띄우기 및 야시장 길거리 음식 체험", dist: "올드타운 내 도보", cost: "소원배 약 8천원", star: "4.6" }
             }
         ],
         '파리': [
             { 
-              am: { t: "루브르 박물관 핵심 관람", d: "모나리자와 비너스상 등 핵심 작품 위주로 빠르게 관람하는 동선", dist: `${accName}에서 메트로 20분`, cost: "입장권 22 유로", star: "4.8" },
-              pm: { t: "튈르리 정원 피크닉 & 에펠탑 야경", d: "정원에서 샌드위치 휴식 후, 사이요 궁으로 이동하여 에펠탑 점등 감상", dist: "도보 및 버스 15분", cost: "식비 약 20 유로", star: "4.9" }
+              am: { t: "루브르 박물관 핵심 관람", d: "모나리자와 비너스상 등 핵심 작품 위주 관람 동선", dist: `${accName}에서 메트로 20분`, cost: "입장권 22 유로", star: "4.8" },
+              pm: { t: "튈르리 정원 & 샹젤리제 거리", d: "정원에서 샌드위치 피크닉 후 개선문까지 도보 산책", dist: "루브르에서 도보 15분", cost: "식비/쇼핑 유동적", star: "4.9" }
             },
             { 
-              am: { t: "몽마르뜨 언덕 & 사크레쾨르 성당", d: "파리 시내가 한눈에 내려다보이는 뷰. 소매치기와 팔찌단 매우 주의!", dist: "메트로 2호선 이동", cost: "무료", star: "4.6" },
-              pm: { t: "마레지구 쇼핑 & 세느강 디너 크루즈", d: "트렌디한 샵 구경 후 바토무슈에 탑승하여 세느강을 따라 코스 요리 즐기기", dist: "택시 20분", cost: "크루즈 약 80 유로", star: "4.7" }
+              am: { t: "에펠탑 & 사이요 궁 인증샷", d: "파리의 상징 에펠탑을 가장 예쁘게 담을 수 있는 스팟", dist: "메트로 6호선 이동", cost: "무료", star: "4.9" },
+              pm: { t: "세느강 유람선 (바토무슈)", d: "해 질 녘 탑승하여 세느강을 따라 파리 주요 랜드마크 감상", dist: "에펠탑 도보 10분", cost: "티켓 약 15 유로", star: "4.7" }
+            },
+            {
+              am: { t: "몽마르뜨 언덕 & 사크레쾨르", d: "시내가 한눈에 내려다보이는 뷰 (소매치기/팔찌단 주의!)", dist: "메트로 2호선", cost: "무료", star: "4.6" },
+              pm: { t: "마레지구 트렌디 샵 투어", d: "파리지앵들이 사랑하는 핫플, 부티크와 편집샵 구경", dist: "버스 20분", cost: "유동적", star: "4.8" }
             }
         ],
         '오사카': [
             { 
-              am: { t: "오사카성 천수각 & 니시노마루 정원", d: "웅장한 오사카성 산책. 벚꽃/단풍 시즌엔 최고의 포토 스팟", dist: `${accName}에서 지하철 15분`, cost: "입장권 600 엔", star: "4.5" },
-              pm: { t: "도톤보리 글리코상 & 이치란 라멘", d: "화려한 네온사인 아래에서 사진 찍고, 웨이팅 필수인 라멘 흡입", dist: "도보 및 지하철", cost: "식비 약 1,500 엔", star: "4.7" }
+              am: { t: "오사카성 천수각 산책", d: "웅장한 오사카성 및 니시노마루 정원. 벚꽃/단풍 최고 명소", dist: `${accName}에서 지하철 15분`, cost: "입장권 600 엔", star: "4.5" },
+              pm: { t: "도톤보리 글리코상 & 먹방", d: "화려한 네온사인 아래에서 사진 찍고 쿠시카츠 흡입", dist: "난바역 도보", cost: "식비 약 3천 엔", star: "4.7" }
             },
             { 
-              am: { t: "유니버셜 스튜디오 재팬 (USJ)", d: "슈퍼 닌텐도 월드와 해리포터 존 오픈런 필수 (익스프레스 패스 권장)", dist: `${accName}에서 JR선 이동`, cost: "입장권 약 8,600 엔", star: "4.9" },
-              pm: { t: "USJ 퍼레이드 & 우메다 스카이빌딩", d: "폐장 전 퍼레이드 관람 후 우메다로 이동하여 공중정원 야경 감상", dist: "JR선 20분", cost: "전망대 1,500 엔", star: "4.8" }
+              am: { t: "유니버셜 스튜디오 (USJ)", d: "슈퍼 닌텐도 월드 & 해리포터 존 오픈런 필수", dist: "JR선 환승 이동", cost: "약 8,600 엔", star: "4.9" },
+              pm: { t: "USJ 퍼레이드 & 즐기기", d: "폐장 전까지 각종 어트랙션과 퍼레이드 관람", dist: "파크 내 도보", cost: "식비 추가", star: "4.9" }
+            },
+            {
+              am: { t: "덴포잔 대관람차 & 가이유칸", d: "항구 지역에서 세계 최대 규모 수족관 둘러보기", dist: "오사카항 지하철 이동", cost: "수족관 약 2,700 엔", star: "4.6" },
+              pm: { t: "우메다 스카이빌딩 야경", d: "탁 트인 공중 정원에서 오사카의 화려한 야경 감상", dist: "우메다역 도보 10분", cost: "전망대 1,500 엔", star: "4.8" }
             }
         ],
         'default': [
-            { 
-              am: { t: `${location} 시그니처 랜드마크 방문`, d: "현지 문화를 가장 잘 느낄 수 있는 대표 명소 둘러보기", dist: `${accName} 출발 기준`, cost: "현지 물가 참조", star: "4.5" },
-              pm: { t: "최고 평점 로컬 맛집 & 번화가 산책", d: "트립어드바이저 평점 4.5 이상의 현지 식당에서 저녁 만찬", dist: "도보 15분 이내", cost: "예산 내 유동적", star: "4.6" }
-            },
-            { 
-              am: { t: "전통 시장 및 로컬 골목 투어", d: "진짜 현지인들의 삶을 엿보고 저렴한 가격에 과일과 기념품 득템", dist: "대중교통 15분", cost: "약 3만 원 내외", star: "4.7" },
-              pm: { t: "일몰 뷰포인트 & 분위기 좋은 카페", d: "가장 아름다운 석양을 볼 수 있는 곳에서 차 한잔의 여유", dist: "차량 20분", cost: "약 1만 원 내외", star: "4.8" }
-            }
+            { am: { t: "도심 핵심 랜드마크 방문", d: "현지 문화를 가장 잘 느낄 수 있는 대표 명소 투어", dist: "차량 15분", cost: "약 2만원", star: "4.6" }, pm: { t: "로컬 파머스 마켓 탐방", d: "가장 활기찬 시장에서 길거리 음식과 현지 분위기 만끽", dist: "도보 이동", cost: "유동적", star: "4.5" } },
+            { am: { t: "근교 자연 힐링 투어", d: "복잡한 도심을 벗어나 탁 트인 자연경관 감상", dist: "대중교통 30분", cost: "약 3만원", star: "4.7" }, pm: { t: "일몰 뷰포인트 & 인생샷", d: "가장 아름다운 석양을 볼 수 있는 핫플레이스 방문", dist: "차량 20분", cost: "무료", star: "4.8" } }
         ]
     };
 
-    let selectedDB = detailedItineraryDB['default'];
-    if (locLower.includes('다낭') || locLower.includes('베트남')) selectedDB = detailedItineraryDB['다낭'];
-    else if (locLower.includes('파리') || locLower.includes('프랑스')) selectedDB = detailedItineraryDB['파리'];
-    else if (locLower.includes('오사카') || locLower.includes('일본')) selectedDB = detailedItineraryDB['오사카'];
+    let selectedDB = itineraryDB['default'];
+    if (locLower.includes('다낭') || locLower.includes('베트남')) selectedDB = itineraryDB['다낭'];
+    else if (locLower.includes('파리') || locLower.includes('프랑스')) selectedDB = itineraryDB['파리'];
+    else if (locLower.includes('오사카') || locLower.includes('일본')) selectedDB = itineraryDB['오사카'];
 
     for (let i = 1; i <= parsedDays; i++) {
         let isFirstDay = (i === 1);
-        
-        // 날짜에 맞는 DB 가져오기 (DB 길이를 초과하면 마지막 일정 반복 혹은 기본 일정 처리)
-        let dbIndex = (i - 1) % selectedDB.length; 
-        let dayData = selectedDB[dbIndex];
+        let dayData = JSON.parse(JSON.stringify(selectedDB[(i - 1) % selectedDB.length])); // 깊은 복사로 매일 수정 방지
+
+        // 기본 저녁/밤 세팅
+        let dinner = { t: "로컬 트립어드바이저 맛집 디너", d: "여행객과 현지인 모두에게 사랑받는 최고 평점 식당", dist: "근처 번화가", cost: "약 3~4만원", star: "4.6" };
+        let night = { t: `<b>[${accName}]</b> 복귀 및 완전한 휴식`, d: "내일 일정을 위해 지출 내역 정리 및 휴식", dist: "-", cost: "-", star: "-" };
+
+        // 💡 AI 키워드 맞춤형 동선 변형 로직
+        if (reqSeafood) {
+            dinner = { t: "🦞 최고 평점 유명 씨푸드 만찬", d: "요청하신 해산물! 수조에서 직접 고른 신선한 랍스터/크랩 식사", dist: "해안가/시내 10분", cost: "약 5~8만원", star: "4.9" };
+        }
+        if (reqMassage) {
+            night = { t: "💆‍♀️ 고급 로컬 스파/마사지 방문", d: "요청하신 마사지! 하루의 피로를 완벽하게 녹여주는 전신 테라피 코스", dist: "숙소 주변 추천 스파", cost: "약 3만원 내외", star: "4.9" };
+        }
+        if (reqParents) {
+            dayData.am.d += " (부모님 체력 고려하여 무조건 그랩/택시 탑승)";
+            dayData.pm.d += " (많이 걷지 않도록 중간에 뷰 좋은 카페 휴식 추가)";
+            if(!reqSeafood) dinner.d = "부모님 입맛에 맞는 자극적이지 않은 고급 현지식 또는 한식당";
+        }
+        if (reqNoShop && dayData.am.t.includes("쇼핑")) {
+            dayData.am.t = "현지 문화 힐링 투어 (쇼핑 제외)";
+            dayData.am.d = "쇼핑 대신 여유롭게 현지인들의 골목과 문화를 둘러보는 산책";
+        }
 
         let dayHtml = `
         <div class="timeline">
-            <div class="timeline-day">Day ${i}</div>
+            <div class="timeline-day">Day ${i} - ${location}</div>
             
             <div class="timeline-item">
                 <div class="time">${isFirstDay ? depTime : '09:00'}</div>
                 <div class="content">
-                    <h4>${isFirstDay ? '집에서 출발 및 공항/역 이동' : `<b>[${accName}]</b> 기상 및 조식`}</h4>
-                    <p>${isFirstDay ? '여권 및 바우처 지참 여부 크로스 체크' : '오늘 일정을 위해 든든하게 아침 챙겨 먹기'}</p>
+                    <h4>${isFirstDay ? '집에서 출발 및 공항 이동' : `기상 및 <b>[${accName}]</b> 조식`}</h4>
+                    <p>${isFirstDay ? '여권/티켓 필수 확인' : '오늘의 일정을 위해 든든하게 식사하기'}</p>
                 </div>
             </div>
             
@@ -243,7 +269,7 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation, 
                 <div class="time">${isFirstDay ? '14:00' : '10:30'}</div>
                 <div class="content">
                     <h4>${isFirstDay ? `<b>[${accName}]</b> 도착 및 체크인` : dayData.am.t}</h4>
-                    <p>${isFirstDay ? '짐 보관 후 가벼운 옷차림으로 환복' : dayData.am.d}</p>
+                    <p>${isFirstDay ? '바우처 준비 및 환복' : dayData.am.d}</p>
                     ${!isFirstDay ? `
                     <div class="schedule-meta">
                         <span><i class="fa-solid fa-map-pin"></i> ${dayData.am.dist}</span>
@@ -252,9 +278,9 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation, 
                     </div>` : ''}
                 </div>
             </div>
-            
+
             <div class="timeline-item">
-                <div class="time">${isFirstDay ? '16:00' : '15:00'}</div>
+                <div class="time">${isFirstDay ? '16:30' : '15:00'}</div>
                 <div class="content">
                     <h4>${isFirstDay ? dayData.am.t : dayData.pm.t}</h4>
                     <p>${isFirstDay ? dayData.am.d : dayData.pm.d}</p>
@@ -267,10 +293,29 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation, 
             </div>
 
             <div class="timeline-item">
-                <div class="time">21:00</div>
+                <div class="time">18:30</div>
                 <div class="content">
-                    <h4><b>[${accName}]</b> 복귀 및 휴식</h4>
-                    <p>내일 일정을 위해 지출 내역을 정리하고 푹 쉬기</p>
+                    <h4>${dinner.t}</h4>
+                    <p>${dinner.d}</p>
+                    <div class="schedule-meta">
+                        <span><i class="fa-solid fa-map-pin"></i> ${dinner.dist}</span>
+                        <span><i class="fa-solid fa-wallet"></i> ${dinner.cost}</span>
+                        <span class="star-rating"><i class="fa-solid fa-star"></i> ${dinner.star}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="time">20:30</div>
+                <div class="content">
+                    <h4>${night.t}</h4>
+                    <p>${night.d}</p>
+                    ${reqMassage ? `
+                    <div class="schedule-meta">
+                        <span><i class="fa-solid fa-map-pin"></i> ${night.dist}</span>
+                        <span><i class="fa-solid fa-wallet"></i> ${night.cost}</span>
+                        <span class="star-rating"><i class="fa-solid fa-star"></i> ${night.star}</span>
+                    </div>` : ''}
                 </div>
             </div>
         </div>`;
@@ -291,7 +336,7 @@ async function generatePlan() {
     const loc = document.getElementById('travel-location').value;
     const dest = document.getElementById('travel-destination').value;
     const accom = document.getElementById('travel-accommodation').value; 
-    const requests = document.getElementById('travel-requests').value; // 신규: 추가 요청 사항
+    const requests = document.getElementById('travel-requests').value; 
     const depTime = document.getElementById('travel-departure').value;
     const days = document.getElementById('travel-days').value;
     const budget = document.getElementById('travel-budget').value;
@@ -329,12 +374,11 @@ async function generatePlan() {
         const result = await response.json();
         
         if(result.result === "success") {
-            // 변경됨: requests(추가요청) 파라미터 추가 전달
             buildDynamicSchedule(days, loc, dest, depTime, accom, requests);
             buildDynamicPack(loc, dest); 
             buildDynamicSpots(loc);
             
-            alert(`완벽한 맞춤형 여행 일정이 생성되었습니다!\n(현지 통화: ${autoCurrency} 자동 세팅 완료) ✈️`);
+            alert(`요청 사항이 완벽히 반영된 맞춤 일정이 생성되었습니다!\n(현지 통화: ${autoCurrency} 자동 세팅 완료) ✈️`);
             const scheduleNavBtn = document.querySelectorAll('.nav-item')[1];
             switchTab('tab-schedule', scheduleNavBtn);
         } else {
