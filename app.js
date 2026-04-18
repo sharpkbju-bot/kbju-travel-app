@@ -1,4 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzQDXn-XmmUxbbD6iXI7pZCH8wh9BAZ7IUH_dNYGVQo2uHvaOtaBX2i_Dkz6WXzU1zy5Q/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwbk0EVM_8z9zyLOuwSJLOY7OGGu-blgCGlSIC_YSVuhxsGIGkWia8VtjVGw7NKQpiR-g/exec"; 
 
 function showLoading(show, text="처리 중...") {
     document.getElementById('loadingText').innerText = text;
