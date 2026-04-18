@@ -59,7 +59,6 @@ body { background-color: var(--bg-color); color: var(--text-main); padding-top: 
 .timeline-item .content h4 { font-size: 15px; margin-bottom: 8px; line-height: 1.4; color: var(--text-main); font-weight: 800; }
 .timeline-item .content p { font-size: 13px; color: #4a5568; line-height: 1.4; margin-bottom: 10px; }
 
-/* 신규: 디테일 일정 내 메타 데이터 (비용, 거리, 별점) */
 .schedule-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color); }
 .schedule-meta span { font-size: 11px; background: #f8f9fa; padding: 4px 8px; border-radius: 6px; color: var(--text-sub); font-weight: 700; display: flex; align-items: center; gap: 4px; }
 .schedule-meta span i { font-size: 10px; }
