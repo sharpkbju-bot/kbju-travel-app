@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kns-travel-v1.12';
+const CACHE_NAME = 'kns-travel-v1.13';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
