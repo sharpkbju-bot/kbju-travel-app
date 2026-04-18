@@ -1,4 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbx7jUjL3KEII0wWny7ygOWle5mRz1yddwd5jTbCX8YqmuYX8f9KjDzhl2wkYo1TRBnd8A/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxO8yCJN8TASmXtuDoQ-9NKvGKYGlaYgEY51XgLLGGnMxK61YVBOSqF0kMAG6-RydsHLw/exec"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
@@ -157,7 +157,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation, 
     const locLower = location.toLowerCase();
     const req = userRequests ? userRequests.toLowerCase() : "";
 
-    // 사용자의 추가 요청 키워드 분석
     const reqMassage = req.includes("마사지") || req.includes("스파");
     const reqParents = req.includes("부모님") || req.includes("어른");
     const reqSeafood = req.includes("해산물") || req.includes("씨푸드") || req.includes("회");
@@ -173,7 +172,6 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation, 
         `;
     }
 
-    // 일자별 실제 유명 스팟 DB 구축
     const itineraryDB = {
         '다낭': [
             { 
@@ -230,13 +228,11 @@ function buildDynamicSchedule(days, location, destType, depTime, accommodation, 
 
     for (let i = 1; i <= parsedDays; i++) {
         let isFirstDay = (i === 1);
-        let dayData = JSON.parse(JSON.stringify(selectedDB[(i - 1) % selectedDB.length])); // 깊은 복사로 매일 수정 방지
+        let dayData = JSON.parse(JSON.stringify(selectedDB[(i - 1) % selectedDB.length])); 
 
-        // 기본 저녁/밤 세팅
         let dinner = { t: "로컬 트립어드바이저 맛집 디너", d: "여행객과 현지인 모두에게 사랑받는 최고 평점 식당", dist: "근처 번화가", cost: "약 3~4만원", star: "4.6" };
         let night = { t: `<b>[${accName}]</b> 복귀 및 완전한 휴식`, d: "내일 일정을 위해 지출 내역 정리 및 휴식", dist: "-", cost: "-", star: "-" };
 
-        // 💡 AI 키워드 맞춤형 동선 변형 로직
         if (reqSeafood) {
             dinner = { t: "🦞 최고 평점 유명 씨푸드 만찬", d: "요청하신 해산물! 수조에서 직접 고른 신선한 랍스터/크랩 식사", dist: "해안가/시내 10분", cost: "약 5~8만원", star: "4.9" };
         }
