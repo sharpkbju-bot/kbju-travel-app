@@ -25,7 +25,7 @@
     <header class="app-header">
         <h1 id="header-title">K&S 여행 스토리</h1>
         <div class="header-actions">
-            <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <button class="icon-btn" onclick="fetchServerData()"><i class="fa-solid fa-rotate-right"></i></button>
             <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
         </div>
     </header>
@@ -82,6 +82,14 @@
                 </div>
 
                 <div class="input-group">
+                    <label>🏨 예약한 숙소 (위치/이름)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="travel-accommodation" placeholder="예: 신라호텔, 다낭 푸라마 리조트" style="flex: 1;">
+                        <button class="secondary-btn" style="width: auto; padding: 0 15px; white-space: nowrap;" onclick="searchAccommodation()">맵 검색</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
                     <label>⏰ 집에서 출발하는 시간</label>
                     <input type="time" id="travel-departure">
                 </div>
@@ -97,14 +105,14 @@
                     </div>
                 </div>
 
-                <button class="primary-btn" onclick="generatePlan()">✨ AI 맞춤형 일정 생성 및 저장하기</button>
+                <button class="primary-btn" onclick="generatePlan()">✨ AI 맞춤형 상세 일정 생성하기</button>
             </div>
         </section>
 
         <section id="tab-schedule" class="tab-content">
             <div class="section-header">
                 <h2>📅 데일리 코스</h2>
-                <p>취향과 체력을 고려한 최적화 동선입니다.</p>
+                <p>숙소와 지역을 반영한 초정밀 최적화 동선입니다.</p>
             </div>
             
             <div id="schedule-container">
@@ -189,8 +197,19 @@
 
             <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event)">
             <button class="camera-btn" onclick="document.getElementById('camera-input').click()">
-                <i class="fa-solid fa-camera"></i> 현재 위치에서 사진 촬영 및 서버 저장
+                <i class="fa-solid fa-camera"></i> GPS 기반 사진 촬영 및 서버 저장
             </button>
+
+            <div class="section-header" style="margin-top: 40px; margin-bottom: 15px;">
+                <h2>🖼️ 나의 여행 갤러리</h2>
+                <p>내가 남긴 발자취를 감상하세요.</p>
+            </div>
+            <div id="photo-gallery" class="photo-grid">
+                <div style="grid-column: span 2; text-align: center; color: var(--text-sub); padding: 30px 0; font-size: 13px;">
+                    우측 상단 새로고침 아이콘을 누르시면<br>저장된 사진을 불러옵니다.
+                </div>
+            </div>
+
         </section>
 
     </main>
