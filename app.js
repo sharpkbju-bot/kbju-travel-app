@@ -1,4 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxlC2NgWP2qNyJ8Oj8mS17k_rwBrTQqI9uvo2KKWCphXpx4sO5mLxZNGgWH_9JldZUBJw/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxHPywU0EjrzXdqcUmzMAGDunFysvv56SwHryAO9YrRZ1ULJ4-3ny8szEEcSX3WfQb8gQ/exec"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
@@ -20,6 +20,62 @@ function switchTab(tabId, element) {
     element.classList.add('active');
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 신규: 숙소 구글 맵 검색 기능
+function searchAccommodation() {
+    const loc = document.getElementById('travel-location').value;
+    if(!loc) return alert("상세 여행지를 먼저 입력해주세요!");
+    const searchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc + " 숙소 호텔")}`;
+    window.open(searchUrl, '_blank');
+}
+
+// 신규: 앱 구동/새로고침 시 서버에서 데이터를 불러와 갤러리를 렌더링하는 함수
+async function fetchServerData() {
+    showLoading(true, "서버에서 여행 기록을 불러오는 중...");
+    try {
+        const response = await fetch(GAS_URL);
+        const result = await response.json();
+        
+        if (result.result === "success") {
+            renderGallery(result.data);
+        }
+    } catch (e) {
+        console.error("데이터 로드 실패", e);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// 갤러리 렌더링 로직
+function renderGallery(dataRows) {
+    const gallery = document.getElementById('photo-gallery');
+    gallery.innerHTML = '';
+    
+    // 2번째 열(인덱스 1)이 'PHOTO'인 행만 추출
+    const photos = dataRows.filter(row => row[1] === "PHOTO");
+    
+    if (photos.length === 0) {
+        gallery.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--text-sub); padding: 30px 0; font-size: 13px;">아직 촬영된 사진이 없습니다.</div>`;
+        return;
+    }
+    
+    // 최신 사진이 위로 오도록 배열 뒤집기
+    photos.reverse().forEach(p => {
+        const dateObj = new Date(p[0]);
+        const dateStr = `${dateObj.getFullYear()}.${dateObj.getMonth()+1}.${dateObj.getDate()} ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2,'0')}`;
+        const locStr = p[2];
+        const imgUrl = p[3]; // 저장된 특수 이미지 링크
+        
+        const html = `
+            <div class="photo-card">
+                <img src="${imgUrl}" alt="여행 사진" onerror="this.src='https://via.placeholder.com/150?text=Image+Load+Error'">
+                <div class="photo-loc"><i class="fa-solid fa-location-dot" style="color:var(--accent);"></i> ${locStr}</div>
+                <div class="photo-date">${dateStr}</div>
+            </div>
+        `;
+        gallery.innerHTML += html;
+    });
 }
 
 function buildDynamicSpots(location) {
@@ -113,45 +169,95 @@ function buildDynamicPack(location, destType) {
     });
 }
 
-function buildDynamicSchedule(days, location, destType, depTime) {
+// 수정됨: 숙소를 반영한 디테일한 맞춤형 일정 생성
+function buildDynamicSchedule(days, location, destType, depTime, accommodation) {
     const container = document.getElementById('schedule-container');
     container.innerHTML = '';
 
-    const typeLabels = { 'relax': '휴양/힐링', 'tour': '관광/랜드마크', 'food': '맛집 탐방', 'activity': '액티비 체험' };
+    const typeLabels = { 'relax': '휴양/힐링', 'tour': '관광/랜드마크', 'food': '맛집 탐방', 'activity': '액티비티 체험' };
     const themeStr = typeLabels[destType] || '자유 일정';
     const parsedDays = parseInt(days);
+    const accName = accommodation ? accommodation : "예약한 숙소";
+    const locLower = location.toLowerCase();
+
+    // 도시별 디테일 모의 데이터 세팅
+    let s_morning = "현지 명소 둘러보기";
+    let s_lunch = "현지 최고 맛집 런치";
+    let s_afternoon = "주요 랜드마크 방문 및 자유시간";
+    let s_dinner = "로컬 다이닝 및 휴식";
+    let s_desc_am = "이동 시간 및 동선 파악 필수";
+
+    if(locLower.includes('다낭') || locLower.includes('베트남')) {
+        s_morning = "한시장 쇼핑 및 주변 로컬 카페 탐방";
+        s_lunch = "냐벱(Nha Bep) 등 현지 베트남 가정식";
+        s_afternoon = "바나힐 테마파크 투어 또는 미케비치 수영";
+        s_dinner = "해산물 마켓 씨푸드 다이닝";
+        s_desc_am = "그랩(Grab) 어플 호출 추천";
+    } else if(locLower.includes('파리') || locLower.includes('프랑스')) {
+        s_morning = "루브르 박물관 또는 오르세 미술관 관람";
+        s_lunch = "노천 카페에서 샌드위치와 에스프레소";
+        s_afternoon = "에펠탑 관람 및 몽마르뜨 언덕 산책";
+        s_dinner = "세느강 낭만 디너 크루즈 탑승";
+        s_desc_am = "소매치기 주의 및 나비고(Navigo) 패스 준비";
+    } else if(locLower.includes('오사카') || locLower.includes('일본')) {
+        s_morning = "오사카성 천수각 산책 및 사진 촬영";
+        s_lunch = "도톤보리 이치란 라멘 또는 초밥";
+        s_afternoon = "유니버셜 스튜디오 또는 덴포잔 관람차";
+        s_dinner = "야키니쿠와 시원한 생맥주 한 잔";
+        s_desc_am = "주유패스 활용 및 지하철 이동 추천";
+    }
 
     for (let i = 1; i <= parsedDays; i++) {
         let isFirstDay = (i === 1);
         let dayHtml = `
         <div class="timeline">
             <div class="timeline-day">Day ${i} - ${location} (${themeStr})</div>
+            
             <div class="timeline-item">
                 <div class="time">${isFirstDay ? depTime : '09:30'}</div>
                 <div class="content">
-                    <h4>${isFirstDay ? '집에서 출발 및 공항/역 이동' : '숙소 출발 및 가벼운 아침 산책'}</h4>
-                    <p>${isFirstDay ? '이동 시간: 확인 필요' : '컨디션 조절: 최상'}</p>
+                    <h4>${isFirstDay ? '집에서 출발 및 공항/역 이동' : `기상 및 <b>[${accName}]</b> 조식`}</h4>
+                    <p>${isFirstDay ? '여권 및 티켓 확인 필수' : '여유로운 아침 식사 및 컨디션 조절'}</p>
                 </div>
             </div>
+            
             <div class="timeline-item">
-                <div class="time">12:30</div>
+                <div class="time">${isFirstDay ? '14:00' : '11:00'}</div>
                 <div class="content">
-                    <h4>${location} 현지 최고 맛집 점심</h4>
-                    <p>예상 비용: 현지 물가 확인 필요 | ${themeStr} 특화 추천 스팟</p>
+                    <h4>${isFirstDay ? `<b>[${accName}]</b> 체크인 및 짐 보관` : s_morning}</h4>
+                    <p>${isFirstDay ? '바우처 준비 및 로비 대기' : s_desc_am}</p>
                 </div>
             </div>
+
             <div class="timeline-item">
-                <div class="time">15:00</div>
+                <div class="time">${isFirstDay ? '15:30' : '13:00'}</div>
                 <div class="content">
-                    <h4>${location} 필수 명소 방문 및 자유시간</h4>
+                    <h4>${s_lunch}</h4>
+                    <p>미리 예약 또는 웨이팅 확인 필수</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="time">${isFirstDay ? '17:00' : '15:00'}</div>
+                <div class="content">
+                    <h4>${s_afternoon}</h4>
                     <p>체력 소모: 보통 | 사진 스팟 집중 공략</p>
                 </div>
             </div>
+            
             <div class="timeline-item">
-                <div class="time">18:30</div>
+                <div class="time">19:00</div>
                 <div class="content">
-                    <h4>석식 및 숙소 복귀 (휴식)</h4>
-                    <p>저녁 식사 및 내일 일정 준비 | 편안한 저녁</p>
+                    <h4>${s_dinner}</h4>
+                    <p>저녁 식사 후 내일 일정 점검</p>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="time">21:30</div>
+                <div class="content">
+                    <h4><b>[${accName}]</b> 복귀 및 완전한 휴식</h4>
+                    <p>가벼운 맥주 한 캔과 함께 하루 마무리</p>
                 </div>
             </div>
         </div>`;
@@ -174,6 +280,7 @@ async function generatePlan() {
     const depTime = document.getElementById('travel-departure').value;
     const days = document.getElementById('travel-days').value;
     const budget = document.getElementById('travel-budget').value;
+    const accom = document.getElementById('travel-accommodation').value; // 신규: 숙소 값
     
     if (!members || !type || !loc || !dest || !depTime || !days || !budget) {
         alert("모든 설정을 빠짐없이 입력해주세요! 📝");
@@ -196,11 +303,11 @@ async function generatePlan() {
     
     document.getElementById('expense-currency').value = autoCurrency;
 
-    showLoading(true, "AI가 로컬 스팟과 동선을 계산하여 서버 저장 중...");
+    showLoading(true, "숙소 위치 기반으로 디테일 일정을 생성 및 저장 중...");
 
     const payload = {
         action: "SAVE_PLAN", location: loc, departureTime: depTime, members: members,
-        type: type, destination: dest, days: days, budget: budget
+        type: type, destination: dest, days: days, budget: budget, accommodation: accom
     };
 
     try {
@@ -208,11 +315,12 @@ async function generatePlan() {
         const result = await response.json();
         
         if(result.result === "success") {
-            buildDynamicSchedule(days, loc, dest, depTime);
+            // 변경됨: 숙소 데이터를 파라미터로 넘김
+            buildDynamicSchedule(days, loc, dest, depTime, accom);
             buildDynamicPack(loc, dest); 
             buildDynamicSpots(loc);
             
-            alert(`완벽한 여행 일정이 생성되었습니다! (현지 통화: ${autoCurrency} 자동 설정) ✈️`);
+            alert(`완벽한 맞춤형 여행 일정이 생성되었습니다!\n(현지 통화: ${autoCurrency} 자동 세팅 완료) ✈️`);
             const scheduleNavBtn = document.querySelectorAll('.nav-item')[1];
             switchTab('tab-schedule', scheduleNavBtn);
         } else {
@@ -379,7 +487,6 @@ async function syncPackData() {
     finally { showLoading(false); }
 }
 
-// 신규: Reverse Geocoding 로직 추가 (좌표 -> 지역명 변환)
 async function handlePhotoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -394,7 +501,6 @@ async function handlePhotoUpload(event) {
                 let locationStr = `위도: ${lat.toFixed(5)}, 경도: ${lon.toFixed(5)}`;
 
                 try {
-                    // 빅데이터클라우드 무료 API를 활용하여 지역명 추출 (API 키 불필요)
                     const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
                     const data = await response.json();
                     
@@ -403,18 +509,17 @@ async function handlePhotoUpload(event) {
                     if (data.locality) regionName += data.locality;
                     
                     if (regionName.trim() !== "") {
-                        // 예: "서울특별시 강남구 (37.xxxx, 127.xxxx)"
                         locationStr = `${regionName.trim()} (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
                     }
                 } catch (e) {
-                    console.warn("지역명 변환 실패, 기본 위경도 데이터 사용");
+                    console.warn("지역명 변환 실패");
                 }
 
                 uploadPhotoData(file, locationStr);
             },
             (error) => {
                 console.warn("GPS 수집 오류:", error);
-                uploadPhotoData(file, "위치 정보 접근 불가 (수동 확인 필요)");
+                uploadPhotoData(file, "위치 정보 접근 불가");
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
@@ -442,7 +547,9 @@ function uploadPhotoData(file, locationInfo) {
             const result = await response.json();
             
             if(result.result === "success") {
-                alert(`성공적으로 사진이 저장되었습니다! 📸\n(기록된 장소: ${locationInfo})`);
+                alert(`성공적으로 사진이 갤러리에 저장되었습니다! 📸\n(기록된 장소: ${locationInfo})`);
+                // 사진 업로드 성공 시 갤러리 자동 리로드
+                fetchServerData();
             } else {
                 alert("실패: " + result.message);
             }
@@ -455,3 +562,8 @@ function uploadPhotoData(file, locationInfo) {
     };
     reader.readAsDataURL(file);
 }
+
+// 신규: 앱 최초 로딩 시 갤러리 데이터 불러오기 (사용자가 원할 때 우측 상단 버튼으로도 가능)
+window.addEventListener('load', () => {
+    fetchServerData();
+});
