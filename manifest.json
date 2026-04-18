@@ -1,0 +1,15 @@
+{
+  "short_name": "K&S 여행",
+  "name": "K&S의 여행 스토리",
+  "display": "standalone",
+  "start_url": "./index.html",
+  "theme_color": "#ffffff",
+  "background_color": "#F7F9FC",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3125/3125713.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
