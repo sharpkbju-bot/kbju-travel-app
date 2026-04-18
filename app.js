@@ -1,4 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxQMxB9Ij4_kWp0pOb4HeG1v_RzTlCFvVvkjmC6RQ8rvzkEysUrD10mqPT8xBxA4ynOqw/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbymKnULrd_wtdMLy0zA7rp6HQdnuFj6hAAxpmsF0KdWo9LyAwaLxhv9QyNQOkcv_GZwgA/exec"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
