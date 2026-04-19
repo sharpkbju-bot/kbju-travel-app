@@ -83,9 +83,10 @@
 
                 <div class="input-group">
                     <label>🏨 예약한 숙소 (위치/이름)</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="travel-accommodation" placeholder="직접 입력하거나 AI 추천받기" style="flex: 1;">
-                        <button class="secondary-btn" style="width: auto; padding: 0 15px; white-space: nowrap; background:#ffe066; color:#d9480f; font-weight:800;" onclick="recommendHotels()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 10곳 추천</button>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="travel-accommodation" placeholder="직접 입력 또는 추천" style="flex: 1; min-width: 0;">
+                        <button class="secondary-btn" style="width: auto; padding: 0 12px; font-size: 13px; white-space: nowrap;" onclick="searchAccommodation()"><i class="fa-solid fa-map-location-dot"></i> 맵 검색</button>
+                        <button class="secondary-btn" style="width: auto; padding: 0 12px; font-size: 13px; white-space: nowrap; background:#ffe066; color:#d9480f; font-weight:800;" onclick="recommendHotels()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 추천</button>
                     </div>
                     <div id="hotel-recommend-box" style="margin-top:10px; display:none;"></div>
                 </div>
