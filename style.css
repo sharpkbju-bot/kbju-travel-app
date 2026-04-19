@@ -106,3 +106,9 @@ body { background-color: var(--bg-color); color: var(--text-main); padding-top: 
 .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sub); font-size: 11px; cursor: pointer; width: 20%; height: 100%; }
 .nav-item.active { color: var(--primary); }
 .nav-item i { font-size: 20px; margin-bottom: 5px; }
+/* AI 숙소 추천 리스트 스타일 */
+.hotel-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.hotel-chip { background: var(--card-bg); border: 1px solid var(--primary); color: var(--primary); padding: 8px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(45, 156, 219, 0.1); }
+.hotel-chip:hover { background: var(--primary); color: white; }
+.hotel-refresh-btn { width: 100%; margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px dashed #ced4da; border-radius: 12px; font-size: 13px; color: var(--text-sub); cursor: pointer; font-weight: 700; }
+.hotel-refresh-btn:hover { background: #e9ecef; }
