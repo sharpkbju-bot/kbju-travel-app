@@ -490,3 +490,35 @@ window.addEventListener('load', () => {
         try { renderAiSchedule(lastTrip.plan, lastTrip.loc, lastTrip.req); } catch(e) {}
     }
 });
+// ⭐ 새 기능: 앱 전체 초기화 (리셋)
+function resetApp() {
+    if(!confirm("입력한 설정과 화면의 현재 일정을 모두 싹~ 비우시겠습니까?\n(※ 내 보관함에 이미 저장해둔 일정은 지워지지 않으니 안심하세요!)")) return;
+
+    // 1. 입력 필드 초기화
+    document.getElementById('travel-location').value = '';
+    document.getElementById('travel-accommodation').value = '';
+    document.getElementById('travel-requests').value = '';
+    document.getElementById('travel-days').value = '';
+    document.getElementById('travel-budget').value = '';
+    document.getElementById('travel-departure').value = '';
+    document.getElementById('hotel-recommend-box').style.display = 'none';
+
+    // 2. 화면 데이터 초기화
+    currentAiPlanData = null;
+    currentAiLoc = "";
+    currentAiReq = "";
+    
+    document.getElementById('schedule-container').innerHTML = '<div style="text-align: center; color: var(--text-sub); padding: 50px 0;">아직 생성된 일정이 없습니다.<br>설정 탭에서 일정을 생성해 주세요.</div>';
+    document.getElementById('spots-container').innerHTML = '<div style="text-align: center; color: var(--text-sub); padding: 50px 0; font-size: 14px;">설정 탭에서 여행지를 입력하시면 AI 맞춤형 명소가 큐레이션 됩니다.</div>';
+
+    // 3. 준비물 & 예산 초기화
+    const packContainer = document.getElementById('pack-container');
+    Array.from(packContainer.children).forEach(child => { if (child.id !== 'pack-add-box') child.remove(); });
+    totalBudget = 0;
+    usedBudget = 0;
+    updateBudgetUI();
+    
+    // 4. 홈(설정) 탭으로 이동
+    switchTab('tab-home', document.querySelectorAll('.nav-item')[0]);
+    window.scrollTo(0, 0);
+}
