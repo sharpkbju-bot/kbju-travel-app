@@ -4,6 +4,11 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbx0QwxBQ_sD4Tuwk7bcDHWX
 let totalBudget = 0;
 let usedBudget = 0;
 
+// 현재 화면에 띄워진 일정 데이터를 임시 보관하는 변수 (저장용)
+let currentAiPlanData = null;
+let currentAiLoc = "";
+let currentAiReq = "";
+
 function showLoading(show, text="처리 중...") {
     document.getElementById('loadingText').innerText = text;
     document.getElementById('loading').style.display = show ? 'flex' : 'none';
@@ -40,8 +45,8 @@ function renderAiSchedule(aiData, location, requests) {
     if (requests && requests.trim() !== "") {
         container.innerHTML += `
         <div class="card" style="background:#fffcf0; border:1px solid #ffe066; margin-bottom:20px;">
-            <h4 style="color:#f59f00; font-size:14px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 특별 요청 완벽 반영</h4>
-            <p style="font-size:13px; margin-top:5px;">"${requests}"</p>
+            <h4 style="color:#f59f00; font-size:14px; margin-bottom:8px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 특별 요청 완벽 반영</h4>
+            <p style="font-size:14px; line-height:1.5;">"${requests}"</p>
         </div>`;
     }
     
@@ -110,6 +115,42 @@ function updateBudgetUI() {
     document.getElementById('remaining-budget').innerText = remaining.toLocaleString() + " 원";
 }
 
+async function recommendHotels() {
+    const loc = document.getElementById('travel-location').value;
+    if(!loc) return alert("AI가 숙소를 추천하려면 '상세 여행지'를 먼저 입력해주세요! (예: 다낭)");
+    
+    const box = document.getElementById('hotel-recommend-box');
+    box.style.display = 'block';
+    box.innerHTML = `<div style="font-size:13px; color:var(--primary); padding:10px 0;"><i class="fa-solid fa-spinner fa-spin"></i> 제미나이가 ${loc}의 인기 숙소 10곳을 찾고 있습니다...</div>`;
+    
+    try {
+        const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "RECOMMEND_HOTELS", location: loc }) });
+        const result = await response.json();
+        if(result.result === "success") {
+            try {
+                const hotels = JSON.parse(result.hotels);
+                renderHotelChips(hotels);
+            } catch(e) { box.innerHTML = `<div style="font-size:13px; color:var(--danger);">데이터를 불러오지 못했습니다.</div>`; }
+        }
+    } catch(e) { box.innerHTML = `<div style="font-size:13px; color:var(--danger);">통신 에러가 발생했습니다.</div>`; }
+}
+
+function renderHotelChips(hotels) {
+    const box = document.getElementById('hotel-recommend-box');
+    let html = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:5px;">원하는 숙소를 터치하면 자동으로 입력됩니다.</div><div class="hotel-chips">`;
+    hotels.forEach(hotel => {
+        const safeName = hotel.replace(/'/g, "\\'"); 
+        html += `<button class="hotel-chip" onclick="selectHotel('${safeName}')">${hotel}</button>`;
+    });
+    html += `</div><button class="hotel-refresh-btn" onclick="recommendHotels()"><i class="fa-solid fa-rotate-right"></i> 마음에 드는 곳이 없나요? 다시 추천받기</button>`;
+    box.innerHTML = html;
+}
+
+function selectHotel(hotelName) {
+    document.getElementById('travel-accommodation').value = hotelName;
+    document.getElementById('hotel-recommend-box').style.display = 'none';
+}
+
 async function generatePlan() {
     const members = document.getElementById('travel-members').value;
     const type = document.getElementById('travel-type').value;
@@ -142,26 +183,129 @@ async function generatePlan() {
         if(result.result === "success") {
             try {
                 const aiData = JSON.parse(result.aiPlan);
+                
+                // ⭐ 현재 생성된 데이터를 전역 변수에 임시 저장 (나중에 이름 지어 저장하기 위함)
+                currentAiPlanData = aiData;
+                currentAiLoc = loc;
+                currentAiReq = requests;
+                
                 renderAiSchedule(aiData, loc, requests);
-                
-                // ⭐ 추가된 기능: 생성된 일정을 스마트폰(브라우저)에 영구 저장합니다!
-                localStorage.setItem('savedTravelPlan', result.aiPlan);
-                localStorage.setItem('savedTravelLoc', loc);
-                localStorage.setItem('savedTravelReq', requests);
-                
             } catch(e) {
                 alert("AI 응답 해석 오류입니다. 다시 시도해주세요.");
             }
             buildDynamicPack(loc, dest); 
             buildDynamicSpots(loc);
             
-            alert(`완벽한 AI 맞춤형 여행 일정이 생성되었습니다! ✈️`);
+            alert(`완벽한 AI 맞춤형 여행 일정이 생성되었습니다!\n(일정 탭에서 '현재 일정 저장'을 눌러 이름을 지어주세요!) ✈️`);
             switchTab('tab-schedule', document.querySelectorAll('.nav-item')[1]);
         } else {
             alert("저장 실패: " + result.message);
         }
     } catch (error) { alert("통신 오류가 발생했습니다."); } finally { showLoading(false); }
 }
+
+// ==========================================
+// ⭐ 다중 일정 보관함 (Save/Load) 전용 로직
+// ==========================================
+
+// 1. 현재 화면의 일정에 이름을 붙여서 저장
+function promptSavePlan() {
+    if (!currentAiPlanData) return alert("저장할 일정이 없습니다. 먼저 설정 탭에서 일정을 생성해주세요!");
+    
+    const planName = prompt(`이 일정의 이름을 지어주세요!\n(예: ${currentAiLoc} 여름 가족여행)`);
+    if (!planName) return; // 취소 누름
+
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
+    
+    const newTrip = {
+        id: new Date().getTime(),
+        name: planName,
+        loc: currentAiLoc,
+        req: currentAiReq,
+        plan: currentAiPlanData,
+        date: new Date().toLocaleDateString('ko-KR')
+    };
+    
+    savedTrips.push(newTrip);
+    localStorage.setItem('savedTripsArray', JSON.stringify(savedTrips));
+    
+    alert(`'${planName}' 일정이 내 폰에 안전하게 보관되었습니다! 💾`);
+    
+    // 만약 보관함이 열려있다면 새로고침
+    if (document.getElementById('saved-plans-list').style.display === 'block') {
+        renderSavedPlansList();
+    }
+}
+
+// 2. 보관함 열기/닫기 토글
+function toggleSavedPlans() {
+    const listDiv = document.getElementById('saved-plans-list');
+    if (listDiv.style.display === 'none' || listDiv.style.display === '') {
+        listDiv.style.display = 'block';
+        renderSavedPlansList();
+    } else {
+        listDiv.style.display = 'none';
+    }
+}
+
+// 3. 보관함 리스트 화면에 그리기
+function renderSavedPlansList() {
+    const listDiv = document.getElementById('saved-plans-list');
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
+    
+    if (savedTrips.length === 0) {
+        listDiv.innerHTML = `<div style="text-align:center; padding:10px; font-size:13px; color:var(--text-sub);">저장된 일정이 없습니다.</div>`;
+        return;
+    }
+
+    let html = `<h4 style="margin-bottom:12px; font-size:14px; color:var(--primary);"><i class="fa-solid fa-list-ul"></i> 저장된 일정 목록</h4>`;
+    
+    // 최신순으로 정렬해서 보여주기
+    savedTrips.reverse().forEach(trip => {
+        html += `
+        <div class="plan-item">
+            <div class="plan-item-info" onclick="loadSpecificPlan(${trip.id})">
+                <strong>${trip.name}</strong>
+                <span>🌍 ${trip.loc} | 📅 ${trip.date}</span>
+            </div>
+            <button onclick="deleteSpecificPlan(${trip.id})" style="background:none; border:none; color:var(--danger); padding:8px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        `;
+    });
+    listDiv.innerHTML = html;
+}
+
+// 4. 보관함에서 특정 일정 불러오기
+function loadSpecificPlan(id) {
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
+    const trip = savedTrips.find(t => t.id === id);
+    if (!trip) return;
+
+    // 현재 데이터를 불러온 데이터로 교체
+    currentAiPlanData = trip.plan;
+    currentAiLoc = trip.loc;
+    currentAiReq = trip.req;
+
+    renderAiSchedule(trip.plan, trip.loc, trip.req);
+    alert(`'${trip.name}' 일정을 성공적으로 불러왔습니다! 🚀`);
+    
+    // 불러오기 완료 후 보관함 숨기기
+    document.getElementById('saved-plans-list').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+
+// 5. 보관함에서 특정 일정 삭제하기
+function deleteSpecificPlan(id) {
+    if (!confirm("이 일정을 보관함에서 영구히 삭제할까요?")) return;
+    
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
+    savedTrips = savedTrips.filter(t => t.id !== id);
+    localStorage.setItem('savedTripsArray', JSON.stringify(savedTrips));
+    
+    renderSavedPlansList(); // 삭제 후 목록 갱신
+}
+
+// ==========================================
 
 async function addExpense() {
     const name = document.getElementById('expense-name').value;
@@ -331,72 +475,18 @@ function uploadPhotoData(file, locationInfo) {
     reader.readAsDataURL(file);
 }
 
-// ⭐ 추가된 기능: 앱을 처음 열 때, 내 폰에 저장된 일정이 있다면 자동으로 불러와서 뿌려줍니다!
+// 앱 실행 시 사진 갤러리 불러오고, 마지막으로 봤던 일정이 있으면 자동으로 띄워줍니다!
 window.addEventListener('load', () => {
     fetchServerData();
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
     
-    const savedPlan = localStorage.getItem('savedTravelPlan');
-    const savedLoc = localStorage.getItem('savedTravelLoc');
-    const savedReq = localStorage.getItem('savedTravelReq');
-    
-    if (savedPlan && savedLoc) {
-        try {
-            renderAiSchedule(JSON.parse(savedPlan), savedLoc, savedReq || "");
-        } catch(e) {
-            console.error("저장된 일정 불러오기 실패", e);
-        }
+    // 저장된 일정이 하나라도 있다면 가장 최근 일정을 기본으로 띄워줍니다.
+    if (savedTrips.length > 0) {
+        const lastTrip = savedTrips[savedTrips.length - 1]; // 배열의 마지막 = 가장 최근
+        currentAiPlanData = lastTrip.plan;
+        currentAiLoc = lastTrip.loc;
+        currentAiReq = lastTrip.req;
+        
+        try { renderAiSchedule(lastTrip.plan, lastTrip.loc, lastTrip.req); } catch(e) {}
     }
 });
-// ⭐ 새 기능 1: 제미나이에게 숙소 10개 추천받기
-async function recommendHotels() {
-    const loc = document.getElementById('travel-location').value;
-    if(!loc) return alert("AI가 숙소를 추천하려면 '상세 여행지'를 먼저 입력해주세요! (예: 다낭)");
-    
-    const box = document.getElementById('hotel-recommend-box');
-    box.style.display = 'block';
-    box.innerHTML = `<div style="font-size:13px; color:var(--primary); padding:10px 0;"><i class="fa-solid fa-spinner fa-spin"></i> 제미나이가 ${loc}의 인기 숙소 10곳을 찾고 있습니다...</div>`;
-    
-    try {
-        const response = await fetch(GAS_URL, { 
-            method: 'POST', 
-            body: JSON.stringify({ action: "RECOMMEND_HOTELS", location: loc }) 
-        });
-        const result = await response.json();
-        
-        if(result.result === "success") {
-            try {
-                const hotels = JSON.parse(result.hotels);
-                renderHotelChips(hotels);
-            } catch(e) {
-                box.innerHTML = `<div style="font-size:13px; color:var(--danger);">데이터를 불러오지 못했습니다. 다시 시도해주세요.</div>`;
-            }
-        }
-    } catch(e) {
-        box.innerHTML = `<div style="font-size:13px; color:var(--danger);">통신 에러가 발생했습니다.</div>`;
-    }
-}
-
-// ⭐ 새 기능 2: 가져온 숙소 10개를 예쁜 버튼(칩)으로 화면에 뿌리기
-function renderHotelChips(hotels) {
-    const box = document.getElementById('hotel-recommend-box');
-    let html = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:5px;">원하는 숙소를 터치하면 자동으로 입력됩니다.</div>`;
-    html += `<div class="hotel-chips">`;
-    
-    hotels.forEach(hotel => {
-        // 작은 따옴표 등 문자열 오류 방지를 위해 특수문자 처리
-        const safeName = hotel.replace(/'/g, "\\'"); 
-        html += `<button class="hotel-chip" onclick="selectHotel('${safeName}')">${hotel}</button>`;
-    });
-    
-    html += `</div>`;
-    // 마음에 안 들 때 누르는 '다시 추천' 버튼
-    html += `<button class="hotel-refresh-btn" onclick="recommendHotels()"><i class="fa-solid fa-rotate-right"></i> 마음에 드는 곳이 없나요? 다시 추천받기</button>`;
-    box.innerHTML = html;
-}
-
-// ⭐ 새 기능 3: 숙소를 터치하면 자동으로 입력칸에 쏙 들어가기
-function selectHotel(hotelName) {
-    document.getElementById('travel-accommodation').value = hotelName;
-    // 선택 후 리스트 박스 깔끔하게 숨기기
-    document.getElementById('hotel-recommend-box').style.display = 'none';
-}
