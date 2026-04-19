@@ -522,3 +522,19 @@ function resetApp() {
     switchTab('tab-home', document.querySelectorAll('.nav-item')[0]);
     window.scrollTo(0, 0);
 }
+// ⭐ 새 기능: 앱 종료 유도 함수
+function exitApp() {
+    if(confirm("여행 플래너를 종료하시겠습니까?\n(입력 중인 정보가 있다면 미리 '저장'해주세요!)")) {
+        // 브라우저 닫기 시도 (일부 안드로이드나 데스크탑에서 작동)
+        window.close();
+        
+        // window.close()가 막혀있는 스마트폰 환경을 위한 우아한 대안 안내
+        alert("이용해 주셔서 감사합니다! ✈️\n안전한 종료를 위해 홈 버튼을 누르거나 브라우저 창을 닫아주세요.");
+        
+        // 화면을 어둡게 처리하여 종료된 듯한 시각적 효과 주기 (선택 사항)
+        document.body.innerHTML = `<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#F7F9FC; color:var(--primary); font-weight:800; font-size:18px;">
+            <i class="fa-solid fa-plane-departure" style="font-size:40px; margin-bottom:15px;"></i>
+            즐거운 여행 되세요!
+        </div>`;
+    }
+}
