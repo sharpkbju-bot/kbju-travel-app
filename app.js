@@ -1,6 +1,6 @@
 // ⭐ 주의: 반드시 새로 발급받은 본인의 웹앱 URL(GAS_URL)로 수정해서 사용하세요!
 const GAS_URL = "https://script.google.com/macros/s/AKfycbx0QwxBQ_sD4Tuwk7bcDHWX_XxOU8vyp-X2KmUB8-kYQQx0TiDXNv9n3Fu-UwbsKGCWlw/exec"; 
- 
+
 let totalBudget = 0;
 let usedBudget = 0;
 
@@ -17,7 +17,6 @@ function switchTab(tabId, element) {
     window.scrollTo(0, 0);
 }
 
-// 🐛 버그 수정 완료: 구글 맵 공식 검색 URL 적용
 function searchAccommodation() {
     const loc = document.getElementById('travel-location').value;
     if(!loc) return alert("상세 여행지를 먼저 입력해주세요!");
@@ -67,7 +66,6 @@ function renderAiSchedule(aiData, location, requests) {
     }
 }
 
-// 🐛 버그 수정 완료: 명소 길찾기 구글 맵 URL 적용
 function buildDynamicSpots(location) {
     const container = document.getElementById('spots-container');
     container.innerHTML = ''; 
@@ -145,6 +143,12 @@ async function generatePlan() {
             try {
                 const aiData = JSON.parse(result.aiPlan);
                 renderAiSchedule(aiData, loc, requests);
+                
+                // ⭐ 추가된 기능: 생성된 일정을 스마트폰(브라우저)에 영구 저장합니다!
+                localStorage.setItem('savedTravelPlan', result.aiPlan);
+                localStorage.setItem('savedTravelLoc', loc);
+                localStorage.setItem('savedTravelReq', requests);
+                
             } catch(e) {
                 alert("AI 응답 해석 오류입니다. 다시 시도해주세요.");
             }
@@ -327,4 +331,19 @@ function uploadPhotoData(file, locationInfo) {
     reader.readAsDataURL(file);
 }
 
-window.addEventListener('load', fetchServerData);
+// ⭐ 추가된 기능: 앱을 처음 열 때, 내 폰에 저장된 일정이 있다면 자동으로 불러와서 뿌려줍니다!
+window.addEventListener('load', () => {
+    fetchServerData();
+    
+    const savedPlan = localStorage.getItem('savedTravelPlan');
+    const savedLoc = localStorage.getItem('savedTravelLoc');
+    const savedReq = localStorage.getItem('savedTravelReq');
+    
+    if (savedPlan && savedLoc) {
+        try {
+            renderAiSchedule(JSON.parse(savedPlan), savedLoc, savedReq || "");
+        } catch(e) {
+            console.error("저장된 일정 불러오기 실패", e);
+        }
+    }
+});
