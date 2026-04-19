@@ -347,3 +347,56 @@ window.addEventListener('load', () => {
         }
     }
 });
+// ⭐ 새 기능 1: 제미나이에게 숙소 10개 추천받기
+async function recommendHotels() {
+    const loc = document.getElementById('travel-location').value;
+    if(!loc) return alert("AI가 숙소를 추천하려면 '상세 여행지'를 먼저 입력해주세요! (예: 다낭)");
+    
+    const box = document.getElementById('hotel-recommend-box');
+    box.style.display = 'block';
+    box.innerHTML = `<div style="font-size:13px; color:var(--primary); padding:10px 0;"><i class="fa-solid fa-spinner fa-spin"></i> 제미나이가 ${loc}의 인기 숙소 10곳을 찾고 있습니다...</div>`;
+    
+    try {
+        const response = await fetch(GAS_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ action: "RECOMMEND_HOTELS", location: loc }) 
+        });
+        const result = await response.json();
+        
+        if(result.result === "success") {
+            try {
+                const hotels = JSON.parse(result.hotels);
+                renderHotelChips(hotels);
+            } catch(e) {
+                box.innerHTML = `<div style="font-size:13px; color:var(--danger);">데이터를 불러오지 못했습니다. 다시 시도해주세요.</div>`;
+            }
+        }
+    } catch(e) {
+        box.innerHTML = `<div style="font-size:13px; color:var(--danger);">통신 에러가 발생했습니다.</div>`;
+    }
+}
+
+// ⭐ 새 기능 2: 가져온 숙소 10개를 예쁜 버튼(칩)으로 화면에 뿌리기
+function renderHotelChips(hotels) {
+    const box = document.getElementById('hotel-recommend-box');
+    let html = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:5px;">원하는 숙소를 터치하면 자동으로 입력됩니다.</div>`;
+    html += `<div class="hotel-chips">`;
+    
+    hotels.forEach(hotel => {
+        // 작은 따옴표 등 문자열 오류 방지를 위해 특수문자 처리
+        const safeName = hotel.replace(/'/g, "\\'"); 
+        html += `<button class="hotel-chip" onclick="selectHotel('${safeName}')">${hotel}</button>`;
+    });
+    
+    html += `</div>`;
+    // 마음에 안 들 때 누르는 '다시 추천' 버튼
+    html += `<button class="hotel-refresh-btn" onclick="recommendHotels()"><i class="fa-solid fa-rotate-right"></i> 마음에 드는 곳이 없나요? 다시 추천받기</button>`;
+    box.innerHTML = html;
+}
+
+// ⭐ 새 기능 3: 숙소를 터치하면 자동으로 입력칸에 쏙 들어가기
+function selectHotel(hotelName) {
+    document.getElementById('travel-accommodation').value = hotelName;
+    // 선택 후 리스트 박스 깔끔하게 숨기기
+    document.getElementById('hotel-recommend-box').style.display = 'none';
+}
