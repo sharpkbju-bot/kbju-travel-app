@@ -81,7 +81,7 @@
                     </select>
                 </div>
 
-               <div class="input-group">
+                <div class="input-group">
                     <label>🏨 예약한 숙소 (위치/이름)</label>
                     <div style="display: flex; gap: 8px;">
                         <input type="text" id="travel-accommodation" placeholder="직접 입력하거나 AI 추천받기" style="flex: 1;">
@@ -96,7 +96,7 @@
                 </div>
 
                 <div class="input-group">
-                    <label>⏰ 집에서 출발하는 시간</label>
+                    <label>⏰ 한국 출발 시간</label>
                     <input type="time" id="travel-departure">
                 </div>
 
@@ -111,7 +111,10 @@
                     </div>
                 </div>
 
-                <button class="primary-btn" onclick="generatePlan()">✨ AI 초정밀 일정 생성하기</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="primary-btn" onclick="generatePlan()" style="flex: 2; margin-top: 0;">✨ AI 초정밀 일정 생성하기</button>
+                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; background: #ffe5e5; color: var(--danger); border: none; font-weight: 800;"><i class="fa-solid fa-rotate-right"></i> 초기화</button>
+                </div>
             </div>
         </section>
 
@@ -120,9 +123,10 @@
                 <h2>📅 데일리 코스</h2>
                 <p>숙소와 지역을 반영한 초정밀 최적화 동선입니다.</p>
                 
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; background: var(--primary-light); color: var(--primary);"><i class="fa-solid fa-floppy-disk"></i> 현재 일정 저장</button>
-                    <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1;"><i class="fa-solid fa-folder-open"></i> 내 보관함 열기</button>
+                <div style="display: flex; gap: 8px; margin-top: 15px;">
+                    <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; background: var(--primary-light); color: var(--primary); padding: 10px 0; font-size: 13px;"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
+                    <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1; padding: 10px 0; font-size: 13px;"><i class="fa-solid fa-folder-open"></i> 보관함</button>
+                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; background: #ffe5e5; color: var(--danger); padding: 10px 0; font-size: 13px;"><i class="fa-solid fa-rotate-right"></i> 비우기</button>
                 </div>
                 
                 <div id="saved-plans-list" class="plan-list-box"></div>
@@ -174,7 +178,9 @@
 
         <section id="tab-spots" class="tab-content">
             <div class="section-header"><h2>📸 큐레이션 & 사진</h2><p>취향 저격 로컬 스팟 및 사진 저장</p></div>
+            
             <div id="spots-container"><div style="text-align: center; color: var(--text-sub); padding: 50px 0; font-size: 14px;">설정 탭에서 여행지를 입력하시면 AI 맞춤형 명소가 큐레이션 됩니다.</div></div>
+            
             <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event)">
             <button class="camera-btn" onclick="document.getElementById('camera-input').click()"><i class="fa-solid fa-camera"></i> GPS 기반 사진 촬영 및 서버 저장</button>
 
