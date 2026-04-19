@@ -112,3 +112,21 @@ body { background-color: var(--bg-color); color: var(--text-main); padding-top: 
 .hotel-chip:hover { background: var(--primary); color: white; }
 .hotel-refresh-btn { width: 100%; margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px dashed #ced4da; border-radius: 12px; font-size: 13px; color: var(--text-sub); cursor: pointer; font-weight: 700; }
 .hotel-refresh-btn:hover { background: #e9ecef; }
+/* ---------------------------------------------------
+   새로운 UX 개선 및 보관함 UI 스타일 추가
+--------------------------------------------------- */
+/* 답답했던 섹션 헤더와 글자 간격 시원하게 넓히기 */
+.section-header { margin-bottom: 25px; }
+.section-header h2 { margin-bottom: 10px; line-height: 1.4; letter-spacing: -0.5px; }
+.section-header p { line-height: 1.6; color: var(--text-sub); font-size: 14px; margin-bottom: 20px; }
+
+/* Day 뱃지 위아래 여백 확보 */
+.timeline-day { margin-top: 15px; margin-bottom: 25px; line-height: 1.4; padding: 8px 18px; }
+
+/* 여러 일정 보관함 디자인 */
+.plan-list-box { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid var(--border-color); display: none; animation: fadeIn 0.3s ease; }
+.plan-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 15px; border-radius: 10px; border: 1px solid #edf2f4; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: 0.2s; }
+.plan-item:hover { border-color: var(--primary); transform: translateY(-2px); }
+.plan-item-info { flex: 1; cursor: pointer; }
+.plan-item-info strong { display: block; font-size: 15px; margin-bottom: 4px; color: var(--text-main); }
+.plan-item-info span { font-size: 12px; color: var(--text-sub); }
