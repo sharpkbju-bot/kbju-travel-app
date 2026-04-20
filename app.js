@@ -110,7 +110,6 @@ function buildTravelTipsAndFood(location) {
 
     container.style.display = 'block';
     
-    // 여행지 이름을 반영하여 맞춤형 데이터처럼 렌더링 (가이드용 데이터)
     container.innerHTML = `
         <div style="margin-bottom: 12px;">
             <h3 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">💡 ${location} 꿀팁 & 로컬 맛집</h3>
@@ -136,7 +135,7 @@ function buildTravelTipsAndFood(location) {
     `;
 }
 
-// 4. 공통 유틸리티 및 기존 로직
+// 4. 공통 유틸리티
 function showLoading(show, text="처리 중...") {
     document.getElementById('loadingText').innerText = text;
     document.getElementById('loading').style.display = show ? 'flex' : 'none';
@@ -156,6 +155,7 @@ function switchTab(tabId, element) {
     }
 }
 
+// ⭐ 복구된 AI 숙소 추천 및 선택 관련 함수
 function searchAccommodation() {
     const loc = document.getElementById('travel-location').value;
     if(!loc) return alert("상세 여행지를 먼저 입력해주세요!");
@@ -163,6 +163,43 @@ function searchAccommodation() {
     window.open(searchUrl, '_blank');
 }
 
+async function recommendHotels() {
+    const loc = document.getElementById('travel-location').value;
+    if(!loc) return alert("AI가 숙소를 추천하려면 '상세 여행지'를 먼저 입력해주세요! (예: 다낭)");
+    
+    const box = document.getElementById('hotel-recommend-box');
+    box.style.display = 'block';
+    box.innerHTML = `<div style="font-size:13px; color:var(--primary); padding:10px 0;"><i class="fa-solid fa-spinner fa-spin"></i> 제미나이가 ${loc}의 인기 숙소 10곳을 찾고 있습니다...</div>`;
+    
+    try {
+        const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "RECOMMEND_HOTELS", location: loc }) });
+        const result = await response.json();
+        if(result.result === "success") {
+            try {
+                const hotels = JSON.parse(result.hotels);
+                renderHotelChips(hotels);
+            } catch(e) { box.innerHTML = `<div style="font-size:13px; color:var(--danger);">데이터를 불러오지 못했습니다.</div>`; }
+        }
+    } catch(e) { box.innerHTML = `<div style="font-size:13px; color:var(--danger);">통신 에러가 발생했습니다.</div>`; }
+}
+
+function renderHotelChips(hotels) {
+    const box = document.getElementById('hotel-recommend-box');
+    let html = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:5px;">원하는 숙소를 터치하면 자동으로 입력됩니다.</div><div class="hotel-chips">`;
+    hotels.forEach(hotel => {
+        const safeName = hotel.replace(/'/g, "\\'"); 
+        html += `<button class="hotel-chip" onclick="selectHotel('${safeName}')">${hotel}</button>`;
+    });
+    html += `</div><button class="hotel-refresh-btn" onclick="recommendHotels()"><i class="fa-solid fa-rotate-right"></i> 마음에 드는 곳이 없나요? 다시 추천받기</button>`;
+    box.innerHTML = html;
+}
+
+function selectHotel(hotelName) {
+    document.getElementById('travel-accommodation').value = hotelName;
+    document.getElementById('hotel-recommend-box').style.display = 'none';
+}
+
+// 데이터 연동 및 렌더링
 async function fetchServerData() {
     showLoading(true, "서버 데이터 연결 중...");
     try {
@@ -233,6 +270,46 @@ function buildDynamicSpots(location, destType) {
     });
 }
 
+// ⭐ 복구된 준비물 관련 함수
+function buildDynamicPack(location, destType) {
+    const container = document.getElementById('pack-container');
+    const addBox = document.getElementById('pack-add-box');
+    Array.from(container.children).forEach(child => { if (child.id !== 'pack-add-box') child.remove(); });
+
+    let items = ["여권 및 신분증", "항공권/숙소 바우처 인쇄본", "상비약 (소화제, 타이레놀)", "보조배터리", "멀티 어댑터 (돼지코)"];
+    items.forEach((itemText, index) => {
+        const id = 'auto-pack-' + index;
+        const html = `<div class="check-item" id="item-wrap-${id}"><input type="checkbox" id="${id}" class="pack-checkbox"><label for="${id}" style="flex:1;">${itemText}</label><button class="pack-delete-btn" onclick="document.getElementById('item-wrap-${id}').remove()"><i class="fa-solid fa-trash"></i></button></div>`;
+        container.insertBefore(document.createRange().createContextualFragment(html), addBox);
+    });
+}
+
+function addPackItem() {
+    const input = document.getElementById('pack-input');
+    const val = input.value.trim();
+    if(!val) return;
+    const id = new Date().getTime();
+    const html = `<div class="check-item" id="item-wrap-${id}"><input type="checkbox" id="${id}" class="pack-checkbox"><label for="${id}" style="flex:1;">${val}</label><button class="pack-delete-btn" onclick="document.getElementById('item-wrap-${id}').remove()"><i class="fa-solid fa-trash"></i></button></div>`;
+    document.getElementById('pack-container').insertBefore(document.createRange().createContextualFragment(html), document.getElementById('pack-add-box'));
+    input.value = '';
+}
+
+async function syncPackData() {
+    const packData = [];
+    document.querySelectorAll('.pack-checkbox').forEach(chk => {
+        const label = document.querySelector(`label[for="${chk.id}"]`);
+        if(label) packData.push({ itemName: label.innerText, isChecked: chk.checked });
+    });
+    if(packData.length === 0) return alert("동기화할 데이터가 없습니다.");
+    showLoading(true, "동기화 중...");
+    try {
+        const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "SYNC_PACK", packData: JSON.stringify(packData) }) });
+        await response.json();
+        alert("동기화 완료!");
+    } catch (error) { alert("오류 발생"); } finally { showLoading(false); }
+}
+
+// 5. 일정 생성 및 보관함 로직
 async function generatePlan() {
     const members = document.getElementById('travel-members').value;
     const type = document.getElementById('travel-type').value;
@@ -269,10 +346,11 @@ async function generatePlan() {
             currentAiReq = requests;
             currentAiDest = dest;
             
-            // 일정, 꿀팁, 명소 렌더링
+            // 일정, 꿀팁, 명소, 준비물 일괄 렌더링
             renderAiSchedule(aiData, loc, requests);
-            buildTravelTipsAndFood(loc); // 팁&맛집 호출
+            buildTravelTipsAndFood(loc); 
             buildDynamicSpots(loc, dest);
+            buildDynamicPack(loc, dest); // 복구
             
             alert(`맞춤형 일정이 생성되었습니다! ✈️`);
             switchTab('tab-schedule', document.querySelectorAll('.nav-item')[1]);
@@ -280,6 +358,68 @@ async function generatePlan() {
     } catch (error) { alert("통신 오류 발생"); } finally { showLoading(false); }
 }
 
+function promptSavePlan() {
+    if (!currentAiPlanData) return alert("저장할 일정이 없습니다. 먼저 설정 탭에서 일정을 생성해주세요!");
+    const planName = prompt(`이 일정의 이름을 지어주세요!\n(예: ${currentAiLoc} 여름 가족여행)`);
+    if (!planName) return; 
+
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
+    const newTrip = {
+        id: new Date().getTime(), name: planName, loc: currentAiLoc, req: currentAiReq, dest: currentAiDest, plan: currentAiPlanData, date: new Date().toLocaleDateString('ko-KR')
+    };
+    savedTrips.push(newTrip);
+    localStorage.setItem('savedTripsArray', JSON.stringify(savedTrips));
+    alert(`'${planName}' 일정이 내 폰에 안전하게 보관되었습니다! 💾`);
+    if (document.getElementById('saved-plans-list').style.display === 'block') renderSavedPlansList();
+}
+
+function toggleSavedPlans() {
+    const listDiv = document.getElementById('saved-plans-list');
+    if (listDiv.style.display === 'none' || listDiv.style.display === '') {
+        listDiv.style.display = 'block';
+        renderSavedPlansList();
+    } else {
+        listDiv.style.display = 'none';
+    }
+}
+
+function renderSavedPlansList() {
+    const listDiv = document.getElementById('saved-plans-list');
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
+    if (savedTrips.length === 0) {
+        listDiv.innerHTML = `<div style="text-align:center; padding:10px; font-size:13px; color:var(--text-sub);">저장된 일정이 없습니다.</div>`;
+        return;
+    }
+    let html = `<h4 style="margin-bottom:12px; font-size:14px; color:var(--primary);"><i class="fa-solid fa-list-ul"></i> 저장된 일정 목록</h4>`;
+    savedTrips.reverse().forEach(trip => {
+        html += `<div class="plan-item"><div class="plan-item-info" onclick="loadSpecificPlan(${trip.id})"><strong>${trip.name}</strong><span>🌍 ${trip.loc} | 📅 ${trip.date}</span></div><button onclick="deleteSpecificPlan(${trip.id})" style="background:none; border:none; color:var(--danger); padding:8px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></div>`;
+    });
+    listDiv.innerHTML = html;
+}
+
+function loadSpecificPlan(id) {
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
+    const trip = savedTrips.find(t => t.id === id);
+    if (!trip) return;
+    currentAiPlanData = trip.plan; currentAiLoc = trip.loc; currentAiReq = trip.req; currentAiDest = trip.dest || 'default';
+    renderAiSchedule(trip.plan, trip.loc, trip.req);
+    buildTravelTipsAndFood(trip.loc);
+    buildDynamicSpots(trip.loc, currentAiDest); 
+    buildDynamicPack(trip.loc, currentAiDest);
+    alert(`'${trip.name}' 일정을 성공적으로 불러왔습니다! 🚀`);
+    document.getElementById('saved-plans-list').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+
+function deleteSpecificPlan(id) {
+    if (!confirm("이 일정을 보관함에서 영구히 삭제할까요?")) return;
+    let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
+    savedTrips = savedTrips.filter(t => t.id !== id);
+    localStorage.setItem('savedTripsArray', JSON.stringify(savedTrips));
+    renderSavedPlansList();
+}
+
+// 6. 예산 관리 
 function updateBudgetUI() {
     const remaining = totalBudget - usedBudget;
     document.getElementById('display-budget').innerText = totalBudget.toLocaleString() + " 원";
@@ -293,7 +433,14 @@ async function addExpense() {
     const currency = document.getElementById('expense-currency').value;
     if(!name || !amount) return alert("내역과 금액을 입력하세요.");
 
-    let rate = 1; if (currency === 'USD') rate = 1350; else if (currency === 'JPY') rate = 9.0;
+    let rate = 1; let currencySymbol = "원";
+    if (currency === 'USD') { rate = 1350; currencySymbol = "$"; }
+    else if (currency === 'JPY') { rate = 9.0; currencySymbol = "¥"; } 
+    else if (currency === 'EUR') { rate = 1450; currencySymbol = "€"; }
+    else if (currency === 'CNY') { rate = 190; currencySymbol = "元"; }
+    else if (currency === 'VND') { rate = 0.054; currencySymbol = "₫"; } 
+    else if (currency === 'THB') { rate = 38; currencySymbol = "฿"; }
+    
     const amountKrw = Math.round(amount * rate);
     const expenseId = new Date().getTime();
 
@@ -302,28 +449,107 @@ async function addExpense() {
         await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "ADD_EXPENSE", id: expenseId, itemName: name, amount: amount, currency: currency, amountKrw: amountKrw }) });
         usedBudget += amountKrw; updateBudgetUI();
         document.getElementById('expense-history').style.display = 'block';
-        const itemHtml = `<div class="expense-item" id="exp-${expenseId}"><div><strong>${name}</strong></div><div style="text-align: right;"><strong class="text-danger">${amount.toLocaleString()} ${currency}</strong></div></div>`;
+        const timeStr = new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'});
+        const itemHtml = `<div class="expense-item" id="exp-${expenseId}"><div><strong>${name}</strong><span class="expense-date">${timeStr}</span></div><div style="text-align: right;"><strong class="text-danger">${amount.toLocaleString()} ${currencySymbol}</strong>${currency !== 'KRW' ? `<span class="expense-date">(${amountKrw.toLocaleString()} 원)</span>` : ''}<div class="item-actions"><button class="action-btn edit" onclick="editExpense(${expenseId}, '${name}', ${amount}, '${currency}', ${amountKrw})">수정</button><button class="action-btn delete" onclick="deleteExpense(${expenseId}, ${amountKrw})">삭제</button></div></div></div>`;
         document.getElementById('expense-list-content').insertAdjacentHTML('afterbegin', itemHtml);
+        document.getElementById('expense-name').value = ''; document.getElementById('expense-amount').value = '';
     } catch (e) { alert("오류"); } finally { showLoading(false); }
 }
 
+async function deleteExpense(id, amountKrw, isEdit = false) {
+    if(!isEdit && !confirm("삭제하시겠습니까?")) return;
+    showLoading(true, "처리 중...");
+    try {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "DELETE_EXPENSE", id: id }) });
+        usedBudget -= amountKrw; updateBudgetUI();
+        const el = document.getElementById('exp-' + id);
+        if(el) el.remove();
+    } catch (e) { alert("오류 발생"); } finally { showLoading(false); }
+}
+
+function editExpense(id, name, amount, currency, amountKrw) {
+    if(!confirm("수정하시겠습니까?")) return;
+    document.getElementById('expense-name').value = name;
+    document.getElementById('expense-amount').value = amount;
+    document.getElementById('expense-currency').value = currency;
+    deleteExpense(id, amountKrw, true);
+}
+
+// 7. 갤러리 및 GPS 사진 업로드 (⭐ 복구 완료)
 function renderGallery(dataRows) {
     const gallery = document.getElementById('photo-gallery');
     gallery.innerHTML = '';
     const photos = dataRows.filter(row => row[1] === "PHOTO");
+    if (photos.length === 0) {
+        gallery.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--text-sub); padding: 30px 0;">아직 촬영된 사진이 없습니다.</div>`;
+        return;
+    }
     photos.reverse().forEach(p => {
+        const dateObj = new Date(p[0]);
+        const dateStr = `${dateObj.getFullYear()}.${dateObj.getMonth()+1}.${dateObj.getDate()} ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2,'0')}`;
         gallery.innerHTML += `
             <div class="photo-card">
-                <img src="${p[3]}">
-                <div class="photo-loc"><i class="fa-solid fa-location-dot"></i> ${p[2]}</div>
+                <button class="photo-delete-btn" onclick="deletePhoto('${p[3]}')"><i class="fa-solid fa-trash"></i></button>
+                <img src="${p[3]}" onerror="this.src='https://via.placeholder.com/150?text=Error'">
+                <div class="photo-loc"><i class="fa-solid fa-location-dot" style="color:var(--accent);"></i> ${p[2]}</div>
+                <div class="photo-date">${dateStr}</div>
             </div>`;
     });
 }
 
+async function deletePhoto(url) {
+    if(!confirm("갤러리와 드라이브에서 완전히 삭제하시겠습니까?")) return;
+    showLoading(true, "삭제 중...");
+    try {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({action: "DELETE_PHOTO", fileUrl: url}) });
+        alert("삭제되었습니다!");
+        fetchServerData();
+    } catch (e) { alert("오류 발생"); } finally { showLoading(false); }
+}
+
+async function handlePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    showLoading(true, "위치 변환 중...");
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude; const lon = position.coords.longitude;
+                let locationStr = `위도: ${lat.toFixed(5)}, 경도: ${lon.toFixed(5)}`;
+                try {
+                    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
+                    const data = await response.json();
+                    let regionName = "";
+                    if (data.principalSubdivision) regionName += data.principalSubdivision + " ";
+                    if (data.locality) regionName += data.locality;
+                    if (regionName.trim() !== "") locationStr = `${regionName.trim()} (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                } catch (e) {}
+                uploadPhotoData(file, locationStr);
+            },
+            (error) => { uploadPhotoData(file, "위치 정보 접근 불가"); },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    } else { uploadPhotoData(file, "GPS 기능 미지원 기기"); }
+}
+
+function uploadPhotoData(file, locationInfo) {
+    showLoading(true, "구글 드라이브 업로드 중...");
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        const payload = { action: "UPLOAD_PHOTO", imageBase64: base64Data, mimeType: file.type, fileName: "photo_" + new Date().getTime() + ".jpg", location: locationInfo };
+        try {
+            await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+            alert(`저장 성공!\n(${locationInfo})`);
+            fetchServerData();
+        } catch (error) { alert("통신 오류"); } finally { showLoading(false); document.getElementById('camera-input').value = ''; }
+    };
+    reader.readAsDataURL(file);
+}
+
+// 8. 앱 초기화 및 종료
 function resetApp() {
     if(!confirm("모두 초기화할까요?")) return;
-    
-    // UI 강제 리셋 방어 코드
     document.getElementById('tips-food-container').style.display = 'none';
     location.reload();
 }
@@ -339,6 +565,8 @@ function loadLastTrip() {
     if (savedTrips.length > 0) {
         const last = savedTrips[savedTrips.length - 1];
         renderAiSchedule(last.plan, last.loc, last.req);
-        buildTravelTipsAndFood(last.loc); // 보관함 로드 시에도 호출
+        buildTravelTipsAndFood(last.loc);
+        buildDynamicSpots(last.loc, last.dest);
+        buildDynamicPack(last.loc, last.dest);
     }
 }
