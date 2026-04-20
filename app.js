@@ -9,6 +9,8 @@ let currentAiPlanData = null;
 let currentAiLoc = "";
 let currentAiReq = "";
 let currentAiDest = "";
+let currentAiTips = null; // ⭐ 동적 여행 팁 저장용 변수 추가
+let currentAiFood = null; // ⭐ 동적 맛집 데이터 저장용 변수 추가
 let travelStartDate = "";
 let travelEndDate = "";
 
@@ -100,8 +102,8 @@ async function updateWeatherInfo() {
     }
 }
 
-// 3. 여행 팁 및 맛집 추천 동적 렌더링
-function buildTravelTipsAndFood(location) {
+// 3. 여행 팁 및 맛집 추천 동적 렌더링 (⭐ 동적 파라미터 적용)
+function buildTravelTipsAndFood(location, tipsData, foodData) {
     const container = document.getElementById('tips-food-container');
     if (!location) {
         container.style.display = 'none';
@@ -110,29 +112,51 @@ function buildTravelTipsAndFood(location) {
 
     container.style.display = 'block';
     
-    container.innerHTML = `
+    let html = `
         <div style="margin-bottom: 12px;">
             <h3 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">💡 ${location} 꿀팁 & 로컬 맛집</h3>
             <p style="font-size: 12px; color: var(--text-sub);">성공적인 여행을 위한 AI 추천 정보입니다.</p>
         </div>
-        
         <div class="horizontal-scroll">
-            <div class="mini-card">
-                <h4>⚠️ 필수 여행 팁</h4>
-                <p>${location}에서는 소매치기를 주의하고, 현지 시장 이용 시 간단한 흥정이 필요할 수 있습니다. 대중교통 패스권을 미리 준비하면 교통비를 크게 아낄 수 있습니다!</p>
-            </div>
-            <div class="mini-card">
-                <h4 style="color: var(--accent);">🍜 로컬 찐맛집 1번가</h4>
-                <div class="rating">★★★★☆ (4.5 / 여행객 평가)</div>
-                <p>현지인들이 줄 서서 먹는 숨은 맛집! 가성비가 매우 훌륭하며, ${location} 특유의 진한 풍미를 느낄 수 있는 대표 메뉴를 추천합니다.</p>
-            </div>
-            <div class="mini-card">
-                <h4 style="color: #2a9d8f;">🍤 분위기 끝판왕 레스토랑</h4>
-                <div class="rating">★★★★★ (4.8 / 여행객 평가)</div>
-                <p>깔끔하고 감각적인 인테리어와 친절한 서비스가 돋보입니다. 멋진 뷰를 보며 여유롭게 저녁 식사하기 완벽한 식당입니다.</p>
-            </div>
+    `;
+
+    // 실제 서버에서 받은 팁 데이터가 있으면 반영, 없으면 대체 텍스트(Fallback) 적용
+    const actualTip = tipsData ? tipsData : `${location}에서는 소매치기를 주의하고, 현지 시장 이용 시 간단한 흥정이 필요할 수 있습니다. 대중교통 패스권을 미리 준비하면 교통비를 크게 아낄 수 있습니다!`;
+    
+    html += `
+        <div class="mini-card">
+            <h4>⚠️ 필수 여행 팁</h4>
+            <p>${actualTip}</p>
         </div>
     `;
+
+    // 서버에서 받은 맛집 배열이 존재할 경우 순회하며 렌더링
+    if (foodData && Array.isArray(foodData) && foodData.length > 0) {
+        foodData.forEach(food => {
+            html += `
+            <div class="mini-card">
+                <h4 style="color: var(--accent);">${food.name}</h4>
+                <div class="rating">${food.rating}</div>
+                <p>${food.desc}</p>
+            </div>`;
+        });
+    } else {
+        // 데이터가 아직 없을 경우 대체 텍스트(Fallback)
+        html += `
+        <div class="mini-card">
+            <h4 style="color: var(--accent);">🍜 로컬 찐맛집 1번가</h4>
+            <div class="rating">★★★★☆ (4.5 / 여행객 평가)</div>
+            <p>현지인들이 줄 서서 먹는 숨은 맛집! 가성비가 매우 훌륭하며, ${location} 특유의 진한 풍미를 느낄 수 있는 대표 메뉴를 추천합니다.</p>
+        </div>
+        <div class="mini-card">
+            <h4 style="color: #2a9d8f;">🍤 분위기 끝판왕 레스토랑</h4>
+            <div class="rating">★★★★★ (4.8 / 여행객 평가)</div>
+            <p>깔끔하고 감각적인 인테리어와 친절한 서비스가 돋보입니다. 멋진 뷰를 보며 여유롭게 저녁 식사하기 완벽한 식당입니다.</p>
+        </div>`;
+    }
+
+    html += `</div>`;
+    container.innerHTML = html;
 }
 
 // 4. 공통 유틸리티
@@ -155,7 +179,7 @@ function switchTab(tabId, element) {
     }
 }
 
-// ⭐ 복구된 AI 숙소 추천 및 선택 관련 함수
+// ⭐ API 과부하 시에도 멈추지 않도록 에러 핸들링 대폭 강화된 숙소 추천
 function searchAccommodation() {
     const loc = document.getElementById('travel-location').value;
     if(!loc) return alert("상세 여행지를 먼저 입력해주세요!");
@@ -174,13 +198,27 @@ async function recommendHotels() {
     try {
         const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "RECOMMEND_HOTELS", location: loc }) });
         const result = await response.json();
+        
         if(result.result === "success") {
             try {
                 const hotels = JSON.parse(result.hotels);
-                renderHotelChips(hotels);
-            } catch(e) { box.innerHTML = `<div style="font-size:13px; color:var(--danger);">데이터를 불러오지 못했습니다.</div>`; }
+                // 숙소 데이터가 정상적으로 있으면 칩 렌더링
+                if (hotels && hotels.length > 0) {
+                    renderHotelChips(hotels);
+                } else {
+                    // 데이터가 비어있을 경우 예외 처리
+                    box.innerHTML = `<div style="font-size:13px; color:var(--danger); margin-bottom:10px;">숙소 정보를 찾지 못했습니다. 다시 시도해주세요.</div><button class="hotel-refresh-btn" onclick="recommendHotels()"><i class="fa-solid fa-rotate-right"></i> 다시 추천받기</button>`;
+                }
+            } catch(e) { 
+                box.innerHTML = `<div style="font-size:13px; color:var(--danger); margin-bottom:10px;">데이터 파싱 중 오류가 발생했습니다.</div><button class="hotel-refresh-btn" onclick="recommendHotels()"><i class="fa-solid fa-rotate-right"></i> 다시 추천받기</button>`; 
+            }
+        } else {
+            // ⭐ High Demand 등 백엔드 API 에러 발생 시 명확하게 사유 표시
+            box.innerHTML = `<div style="font-size:13px; color:var(--danger); margin-bottom:10px;">API 오류: ${result.message || '요청 실패'}<br>(※ Gemini 모델 과부하 상태일 수 있습니다.)</div><button class="hotel-refresh-btn" onclick="recommendHotels()"><i class="fa-solid fa-rotate-right"></i> 다시 추천받기</button>`;
         }
-    } catch(e) { box.innerHTML = `<div style="font-size:13px; color:var(--danger);">통신 에러가 발생했습니다.</div>`; }
+    } catch(e) { 
+        box.innerHTML = `<div style="font-size:13px; color:var(--danger); margin-bottom:10px;">통신 에러가 발생했습니다. 잠시 후 시도해주세요.</div><button class="hotel-refresh-btn" onclick="recommendHotels()"><i class="fa-solid fa-rotate-right"></i> 다시 추천받기</button>`; 
+    }
 }
 
 function renderHotelChips(hotels) {
@@ -270,7 +308,7 @@ function buildDynamicSpots(location, destType) {
     });
 }
 
-// ⭐ 복구된 준비물 관련 함수
+// 준비물 관련 함수
 function buildDynamicPack(location, destType) {
     const container = document.getElementById('pack-container');
     const addBox = document.getElementById('pack-add-box');
@@ -309,7 +347,7 @@ async function syncPackData() {
     } catch (error) { alert("오류 발생"); } finally { showLoading(false); }
 }
 
-// 5. 일정 생성 및 보관함 로직
+// 5. 일정 생성 및 보관함 로직 (⭐ API 에러 경고창 강화 및 동적 데이터 파싱)
 async function generatePlan() {
     const members = document.getElementById('travel-members').value;
     const type = document.getElementById('travel-type').value;
@@ -345,17 +383,32 @@ async function generatePlan() {
             currentAiLoc = loc;
             currentAiReq = requests;
             currentAiDest = dest;
+
+            // ⭐ 백엔드에서 받은 실제 꿀팁/맛집 데이터 파싱
+            const tipsData = result.tips ? JSON.parse(result.tips) : null;
+            const foodData = result.restaurants ? JSON.parse(result.restaurants) : null;
+            
+            // 보관함에 같이 저장하기 위해 임시 할당
+            currentAiTips = tipsData;
+            currentAiFood = foodData;
             
             // 일정, 꿀팁, 명소, 준비물 일괄 렌더링
             renderAiSchedule(aiData, loc, requests);
-            buildTravelTipsAndFood(loc); 
+            buildTravelTipsAndFood(loc, tipsData, foodData); 
             buildDynamicSpots(loc, dest);
-            buildDynamicPack(loc, dest); // 복구
+            buildDynamicPack(loc, dest); 
             
             alert(`맞춤형 일정이 생성되었습니다! ✈️`);
             switchTab('tab-schedule', document.querySelectorAll('.nav-item')[1]);
+        } else {
+            // ⭐ High Demand 등 백엔드 에러 시 빈 화면이 아닌 명확한 경고창 띄우기
+            alert(`❌ 일정 생성 실패:\n${result.message || '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'}\n\n(※ 현재 Google AI 모델 과부하 상태일 수 있습니다.)`);
         }
-    } catch (error) { alert("통신 오류 발생"); } finally { showLoading(false); }
+    } catch (error) { 
+        alert("❌ 통신 오류가 발생했습니다. 네트워크 상태를 확인하거나 잠시 후 다시 시도해주세요."); 
+    } finally { 
+        showLoading(false); 
+    }
 }
 
 function promptSavePlan() {
@@ -365,7 +418,9 @@ function promptSavePlan() {
 
     let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
     const newTrip = {
-        id: new Date().getTime(), name: planName, loc: currentAiLoc, req: currentAiReq, dest: currentAiDest, plan: currentAiPlanData, date: new Date().toLocaleDateString('ko-KR')
+        id: new Date().getTime(), name: planName, loc: currentAiLoc, req: currentAiReq, dest: currentAiDest, 
+        tips: currentAiTips, food: currentAiFood, // ⭐ 보관함에 팁/맛집 정보도 함께 저장
+        plan: currentAiPlanData, date: new Date().toLocaleDateString('ko-KR')
     };
     savedTrips.push(newTrip);
     localStorage.setItem('savedTripsArray', JSON.stringify(savedTrips));
@@ -401,11 +456,15 @@ function loadSpecificPlan(id) {
     let savedTrips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
     const trip = savedTrips.find(t => t.id === id);
     if (!trip) return;
+    
     currentAiPlanData = trip.plan; currentAiLoc = trip.loc; currentAiReq = trip.req; currentAiDest = trip.dest || 'default';
+    currentAiTips = trip.tips || null; currentAiFood = trip.food || null;
+
     renderAiSchedule(trip.plan, trip.loc, trip.req);
-    buildTravelTipsAndFood(trip.loc);
+    buildTravelTipsAndFood(trip.loc, currentAiTips, currentAiFood); // ⭐ 보관함 데이터로 로드
     buildDynamicSpots(trip.loc, currentAiDest); 
     buildDynamicPack(trip.loc, currentAiDest);
+    
     alert(`'${trip.name}' 일정을 성공적으로 불러왔습니다! 🚀`);
     document.getElementById('saved-plans-list').style.display = 'none';
     window.scrollTo(0, 0);
@@ -475,7 +534,7 @@ function editExpense(id, name, amount, currency, amountKrw) {
     deleteExpense(id, amountKrw, true);
 }
 
-// 7. 갤러리 및 GPS 사진 업로드 (⭐ 복구 완료)
+// 7. 갤러리 및 GPS 사진 업로드 
 function renderGallery(dataRows) {
     const gallery = document.getElementById('photo-gallery');
     gallery.innerHTML = '';
@@ -565,7 +624,7 @@ function loadLastTrip() {
     if (savedTrips.length > 0) {
         const last = savedTrips[savedTrips.length - 1];
         renderAiSchedule(last.plan, last.loc, last.req);
-        buildTravelTipsAndFood(last.loc);
+        buildTravelTipsAndFood(last.loc, last.tips, last.food); // ⭐ 보관함 자동 로드
         buildDynamicSpots(last.loc, last.dest);
         buildDynamicPack(last.loc, last.dest);
     }
