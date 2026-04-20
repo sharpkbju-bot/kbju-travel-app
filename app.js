@@ -509,7 +509,7 @@ function resetApp() {
     currentAiReq = "";
     
     document.getElementById('schedule-container').innerHTML = '<div style="text-align: center; color: var(--text-sub); padding: 50px 0;">아직 생성된 일정이 없습니다.<br>설정 탭에서 일정을 생성해 주세요.</div>';
-    document.getElementById('spots-container').innerHTML = '<div style="text-align: center; color: var(--text-sub); padding: 50px 0; font-size: 14px;">여행지를 선택하세요. AI 맞춤형 명소가 큐레이션 됩니다.</div>';
+    document.getElementById('spots-container').innerHTML = '<div style="text-align: center; color: var(--text-sub); padding: 50px 0; font-size: 14px;">여행지를 입력하세요. AI 맞춤형 명소가 큐레이션 됩니다.</div>';
 
     // 3. 준비물 & 예산 초기화
     const packContainer = document.getElementById('pack-container');
