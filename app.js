@@ -1,5 +1,5 @@
 // ⭐ 주의: 반드시 새로 발급받은 본인의 웹앱 URL(GAS_URL)로 수정해서 사용하세요!
-const GAS_URL = "https://script.google.com/macros/s/AKfycbx0QwxBQ_sD4Tuwk7bcDHWX_XxOU8vyp-X2KmUB8-kYQQx0TiDXNv9n3Fu-UwbsKGCWlw/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxakaBpqRtBhCtVxqVxw0ekTUxHFkiY7Z72mCplVB8Wvc-ctai08i9ZNfjefngaUp33yw/exec"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
