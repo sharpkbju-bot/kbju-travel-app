@@ -14,35 +14,36 @@
             --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #a855f7; 
             --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-sub: #64748b; --border-color: #e2e8f0;
         }
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Pretendard', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; }
         
         .card { 
             background: var(--card-bg); border-radius: 16px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); 
             padding: 20px; box-sizing: border-box; width: 100%; margin-bottom: 16px;
         }
-        .section-header h2, .card h3 { color: var(--primary-dark) !important; font-weight: 800 !important; margin-bottom: 12px; }
+        .section-header h2, .card h3 { color: var(--primary-dark); font-weight: 800; margin-bottom: 12px; margin-top: 0; }
         
         input, select, textarea { 
             width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); 
             border-radius: 12px; padding: 14px 16px; background: #f8fafc; 
-            font-size: 14px; outline: none; transition: all 0.2s; margin-top: 6px;
+            font-size: 14px; outline: none; transition: all 0.2s; margin-top: 6px; font-family: inherit;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
         
+        /* ⭐ 방해가 되던 !important 제거 및 기본 버튼 스타일 슬림화 */
         .primary-btn, .secondary-btn, .camera-btn {
-            padding: 10px 14px !important; border-radius: 12px !important;
-            font-size: 14px !important; font-weight: 700 !important; line-height: 1.4 !important;
-            height: auto !important; box-sizing: border-box !important; margin: 0 !important;
+            border-radius: 12px; font-size: 14px; font-weight: 700; line-height: 1.4;
+            box-sizing: border-box; margin: 0; cursor: pointer; border: none;
+            display: flex; align-items: center; justify-content: center; transition: opacity 0.2s;
         }
         .primary-btn { 
-            background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; 
-            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; 
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25); padding: 12px 16px;
         }
-        .secondary-btn { background: #f1f5f9; color: #475569; border: none; display: flex; align-items: center; justify-content: center; }
+        .secondary-btn { background: #f1f5f9; color: #475569; padding: 12px 16px; }
         
         .app-header { border-bottom: none; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); }
-        #header-title { color: var(--primary-dark); font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #header-title { color: var(--primary-dark); font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
         .bottom-nav .nav-item.active { color: var(--primary); font-weight: 700; }
         .bottom-nav .nav-item i { font-size: 20px; margin-bottom: 4px; }
 
@@ -67,13 +68,13 @@
     
     <header class="app-header">
         <h1 id="header-title">K&S 여행 스토리</h1>
-        <div class="header-actions"><button class="icon-btn" onclick="fetchServerData()" style="color:var(--text-sub);"><i class="fa-solid fa-rotate-right"></i></button></div>
+        <div class="header-actions"><button class="icon-btn" onclick="fetchServerData()" style="color:var(--text-sub); border:none; background:none;"><i class="fa-solid fa-rotate-right"></i></button></div>
     </header>
     
     <main id="app-main" style="padding-bottom: 80px;">
         <section id="tab-home" class="tab-content active" style="padding: 16px;">
             <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 16px; margin-bottom: 16px; padding: 24px; box-sizing: border-box; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);">
-                <h2 style="color:white; margin-bottom:8px;">데이터 기반 최적화<br>맞춤형 여행 설계 ✈️</h2>
+                <h2 style="color:white; margin-bottom:8px; margin-top:0;">데이터 기반 최적화<br>맞춤형 여행 설계 ✈️</h2>
                 <p style="color:rgba(255,255,255,0.9); margin:0;">AI와 라이브러리가 결합된 스마트 플래너</p>
             </div>
             
@@ -133,9 +134,11 @@
                 
                 <div class="input-group" style="margin-bottom: 16px;">
                     <label style="font-weight: 700; color: var(--text-main); font-size: 13px;">🏨 예약한 숙소 정보</label>
-                    <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center; width: 100%; box-sizing: border-box;">
-                        <input type="text" id="travel-accommodation" placeholder="숙소 이름/위치" style="flex: 1; min-width: 0; margin-top: 0; height: 40px; padding: 0 12px; box-sizing: border-box;">
-                        <button class="secondary-btn" style="padding: 0 12px !important; height: 40px !important; font-size: 13px !important; background:#e0e7ff; color:var(--primary); flex-shrink: 0; white-space: nowrap;" onclick="searchGoogleMapsHotel()"><i class="fa-solid fa-map-location-dot" style="margin-right:4px;"></i> 맵 검색</button>
+                    <div style="display: flex; gap: 8px; margin-top: 6px; width: 100%; box-sizing: border-box;">
+                        <input type="text" id="travel-accommodation" placeholder="숙소 이름/위치" style="flex: 1; min-width: 0; margin-top: 0 !important; height: 40px !important; padding: 0 12px !important; border-radius: 8px !important; font-size: 13px !important; box-sizing: border-box;">
+                        <button class="secondary-btn" style="flex-shrink: 0; height: 40px !important; padding: 0 12px !important; font-size: 13px !important; background:#e0e7ff !important; color:var(--primary) !important; border-radius: 8px !important; margin: 0 !important; white-space: nowrap;" onclick="searchGoogleMapsHotel()">
+                            <i class="fa-solid fa-map-location-dot" style="margin-right:4px;"></i>맵 검색
+                        </button>
                     </div>
                 </div>
                 
@@ -149,7 +152,7 @@
                 
                 <div style="display: flex; gap: 10px; width: 100%; box-sizing: border-box; align-items: stretch;">
                     <button class="primary-btn" onclick="generatePlan()" style="flex: 1; height: 50px !important;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i> 일정 생성</button>
-                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; height: 50px !important; background: #e2e8f0; color: #334155;"><i class="fa-solid fa-rotate-right" style="margin-right:6px;"></i> 조건 초기화</button>
+                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; height: 50px !important; background: #e2e8f0 !important; color: #334155 !important;"><i class="fa-solid fa-rotate-right" style="margin-right:6px;"></i> 조건 초기화</button>
                 </div>
             </div>
         </section>
@@ -158,9 +161,9 @@
             <div class="section-header">
                 <h2>📅 데일리 코스</h2>
                 <div style="display: flex; gap: 6px; margin-top: 15px; margin-bottom: 25px; width: 100%; box-sizing: border-box;">
-                    <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; min-width: 0; background: #e0e7ff; color: var(--primary); font-size: 13px; height: 40px !important; padding: 0 4px !important; white-space: nowrap;"><i class="fa-solid fa-floppy-disk" style="margin-right:4px;"></i> 저장</button>
-                    <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1; min-width: 0; font-size: 13px; height: 40px !important; padding: 0 4px !important; white-space: nowrap;"><i class="fa-solid fa-folder-open" style="margin-right:4px;"></i> 보관함</button>
-                    <button class="secondary-btn" onclick="resetScheduleScreen()" style="flex: 1; min-width: 0; background: #fee2e2; color: #ef4444; font-size: 13px; height: 40px !important; padding: 0 4px !important; white-space: nowrap;"><i class="fa-solid fa-eraser" style="margin-right:4px;"></i> 초기화</button>
+                    <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; min-width: 0; background: #e0e7ff !important; color: var(--primary) !important; font-size: 13px !important; height: 40px !important; padding: 0 !important; border-radius: 8px !important; white-space: nowrap;"><i class="fa-solid fa-floppy-disk" style="margin-right:4px;"></i> 저장</button>
+                    <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1; min-width: 0; font-size: 13px !important; height: 40px !important; padding: 0 !important; border-radius: 8px !important; white-space: nowrap; background: #f1f5f9 !important; color: #475569 !important;"><i class="fa-solid fa-folder-open" style="margin-right:4px;"></i> 보관함</button>
+                    <button class="secondary-btn" onclick="resetScheduleScreen()" style="flex: 1; min-width: 0; background: #fee2e2 !important; color: #ef4444 !important; font-size: 13px !important; height: 40px !important; padding: 0 !important; border-radius: 8px !important; white-space: nowrap;"><i class="fa-solid fa-eraser" style="margin-right:4px;"></i> 초기화</button>
                 </div>
                 <div id="saved-plans-list" class="plan-list-box" style="margin-bottom: 20px;"></div>
             </div>
