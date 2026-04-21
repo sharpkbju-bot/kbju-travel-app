@@ -46,7 +46,6 @@
         .bottom-nav .nav-item.active { color: var(--primary); font-weight: 700; }
         .bottom-nav .nav-item i { font-size: 20px; margin-bottom: 4px; }
 
-        /* 가이드 팝업(Modal) 스타일 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 9999;
@@ -72,20 +71,20 @@
     </header>
     
     <main id="app-main" style="padding-bottom: 80px;">
-        <section id="tab-home" class="tab-content active">
-            <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 16px; margin: 0 16px 20px 16px; padding: 24px; box-sizing: border-box; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);">
+        <section id="tab-home" class="tab-content active" style="padding: 16px;">
+            <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 16px; margin-bottom: 16px; padding: 24px; box-sizing: border-box; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);">
                 <h2 style="color:white; margin-bottom:8px;">데이터 기반 최적화<br>맞춤형 여행 설계 ✈️</h2>
                 <p style="color:rgba(255,255,255,0.9); margin:0;">AI와 라이브러리가 결합된 스마트 플래너</p>
             </div>
             
-            <div class="card" onclick="document.getElementById('guide-modal').style.display='flex'" style="margin: 0 16px 16px 16px; background: linear-gradient(to right, #e0e7ff, #f3e8ff); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+            <div class="card" onclick="document.getElementById('guide-modal').style.display='flex'" style="margin-bottom: 16px; background: linear-gradient(to right, #e0e7ff, #f3e8ff); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
                 <div style="font-weight: 800; color: var(--primary-dark); font-size: 15px;"><i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> 새로운 여행지 추가 절차 확인</div>
                 <i class="fa-solid fa-chevron-right" style="color: var(--primary);"></i>
             </div>
 
-            <div id="weather-info-card" class="weather-card" style="display: none; background: var(--primary-dark); border-radius: 16px; margin: 0 16px 20px 16px; padding: 16px; box-sizing: border-box;"></div>
+            <div id="weather-info-card" class="weather-card" style="display: none; background: var(--primary-dark); border-radius: 16px; margin-bottom: 16px; padding: 16px; box-sizing: border-box;"></div>
             
-            <div class="card setup-card" style="margin: 0 16px;">
+            <div class="card setup-card" style="margin-bottom: 0;">
                 <h3>기본 여행 설정</h3>
                 
                 <div class="input-group" style="margin-bottom: 16px;">
@@ -136,7 +135,7 @@
                     <label style="font-weight: 700; color: var(--text-main); font-size: 13px;">🏨 예약한 숙소 정보</label>
                     <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center;">
                         <input type="text" id="travel-accommodation" placeholder="숙소 이름 또는 위치" style="flex: 1; margin-top: 0;">
-                        <button class="secondary-btn" style="width: 85px; height: 46px !important; background:#e0e7ff; color:#4f46e5; flex-shrink: 0;" onclick="searchGoogleMapsHotel()"><i class="fa-solid fa-map-location-dot" style="margin-right:4px;"></i> 맵 검색</button>
+                        <button class="secondary-btn" style="padding: 0 14px !important; height: 46px !important; background:#e0e7ff; color:#4f46e5; flex-shrink: 0; white-space: nowrap;" onclick="searchGoogleMapsHotel()"><i class="fa-solid fa-map-location-dot" style="margin-right:4px;"></i> 맵 검색</button>
                     </div>
                 </div>
                 
@@ -161,6 +160,7 @@
                 <div style="display: flex; gap: 8px; margin-top: 15px; margin-bottom: 25px;">
                     <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; background: #e0e7ff; color: var(--primary); font-size: 13px; height: 40px !important;"><i class="fa-solid fa-floppy-disk" style="margin-right:4px;"></i> 저장</button>
                     <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1; font-size: 13px; height: 40px !important;"><i class="fa-solid fa-folder-open" style="margin-right:4px;"></i> 보관함</button>
+                    <button class="secondary-btn" onclick="clearScheduleScreen()" style="flex: 1; background: #fee2e2; color: #ef4444; font-size: 13px; height: 40px !important;"><i class="fa-solid fa-eraser" style="margin-right:4px;"></i> 화면 지우기</button>
                 </div>
                 <div id="saved-plans-list" class="plan-list-box" style="margin-bottom: 20px;"></div>
             </div>
