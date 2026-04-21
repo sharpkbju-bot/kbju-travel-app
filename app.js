@@ -43,11 +43,9 @@ function switchTab(tabId, element) {
     }
 }
 
-// ⭐ 날씨 업데이트 및 통화 자동 변경 로직 통합
 async function updateWeatherAndCurrency() {
     const loc = document.getElementById('travel-location').value;
     
-    // 1. 여행지에 따른 통화(Currency) 자동 변환
     const currencySelect = document.getElementById('expense-currency');
     if (loc) {
         if (/일본|오사카|도쿄|후쿠오카|삿포로|교토/.test(loc)) currencySelect.value = 'JPY';
@@ -60,7 +58,6 @@ async function updateWeatherAndCurrency() {
         else currencySelect.value = 'KRW';
     }
 
-    // 2. 날씨 정보 업데이트
     const weatherCard = document.getElementById('weather-info-card');
     if (!loc || !travelStartDate) return;
     weatherCard.style.display = 'flex';
@@ -77,17 +74,12 @@ async function updateWeatherAndCurrency() {
     } catch (e) { weatherCard.style.display = 'none'; }
 }
 
-// ⭐ 구글 맵스 숙소 검색 로직
 function searchGoogleMapsHotel() {
     const loc = document.getElementById('travel-location').value;
     const accom = document.getElementById('travel-accommodation').value;
     if (!loc) return alert("상세 여행 목적지를 먼저 입력해주세요!");
-    
-    // 여행지 + 숙소명(또는 기본값 '호텔') 조합으로 구글맵 검색 URL 생성
     const query = encodeURIComponent(`${loc} ${accom || '호텔'}`);
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
-    
-    // 새 창으로 구글맵 열기
     window.open(googleMapsUrl, '_blank');
 }
 
@@ -112,7 +104,6 @@ function buildTravelTipsAndFood(location, tips, food) {
     container.innerHTML = html + `</div>`;
 }
 
-// 자체 DB 호출 함수
 async function generatePlan() {
     const loc = document.getElementById('travel-location').value;
     const type = document.getElementById('travel-type').value;
@@ -160,6 +151,14 @@ async function generatePlan() {
     } finally { 
         showLoading(false); 
     }
+}
+
+// ⭐ 일정 화면 비우기(초기화) 함수 추가
+function clearScheduleScreen() {
+    if(!confirm("화면에 표시된 일정을 지우시겠습니까? (보관함에 저장된 데이터는 삭제되지 않습니다.)")) return;
+    document.getElementById('schedule-container').innerHTML = '<div style="text-align: center; padding: 40px 0; color: var(--text-sub); font-size: 14px;">설정 탭에서 일정을 생성해주세요.</div>';
+    document.getElementById('tips-food-container').style.display = 'none';
+    currentAiPlanData = null;
 }
 
 function renderAiSchedule(data, loc, req) {
