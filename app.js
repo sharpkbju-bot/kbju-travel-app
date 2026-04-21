@@ -1,5 +1,5 @@
 // ⭐ 주의: 반드시 본인의 구글 앱스 스크립트 배포 웹앱 URL로 교체하세요!
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxyS29iQDVNc37_05IwtUHCjbSg1sS3kYU48eEI-lxcA8OZ5165nsVaI8on0m1voV7PMg/exec"; 
+const GAS_URL = "여기에_배포된_URL_입력"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
@@ -78,7 +78,6 @@ function buildTravelTipsAndFood(location, tips, food) {
     container.innerHTML = html + `</div>`;
 }
 
-// ⭐ 파라미터 추가: forceRegenerate (다시 생성 여부)
 async function generatePlan(forceRegenerate = false) {
     const loc = document.getElementById('travel-location').value;
     const type = document.getElementById('travel-type').value;
@@ -92,13 +91,12 @@ async function generatePlan(forceRegenerate = false) {
 
     if (!loc || !type || !days) return alert("필수 항목(목적지, 구성원, 기간)을 입력하세요!");
 
-    // 재생성 여부에 따라 로딩 텍스트 변경
-    const loadingText = forceRegenerate ? "AI가 새로운 코스를 다시 작성하고 있습니다..." : "라이브러리 및 AI 데이터 분석 중...";
+    const loadingText = forceRegenerate ? "AI가 새로운 코스를 작성하고 있습니다..." : "데이터 탐색 및 AI 분석 중...";
     showLoading(true, loadingText);
     
     const payload = {
         action: "SAVE_PLAN", 
-        forceRegenerate: forceRegenerate, // 재생성 강제 트리거
+        forceRegenerate: forceRegenerate,
         location: loc, type: type, members: members,
         destination: dest, days: days, accommodation: accom,
         departureTime: depTime, budget: budget, requests: requests,
@@ -129,7 +127,7 @@ async function generatePlan(forceRegenerate = false) {
 function renderAiSchedule(data, loc, req) {
     const container = document.getElementById('schedule-container');
     container.innerHTML = '';
-    if (req) container.innerHTML = `<div class="card" style="background:#fffcf0; border:1px solid #ffe066; margin-bottom:20px;"><h4 style="color:#d9480f; font-size:14px; margin-bottom:8px;">특별 요청 반영</h4><p style="font-size:13px;">${req}</p></div>`;
+    if (req) container.innerHTML = `<div class="card" style="background:#fffcf0; border:1px solid #ffe066; margin-bottom:20px;"><h4 style="color:#d9480f; font-size:14px; margin-bottom:8px;">요청사항 반영</h4><p style="font-size:13px;">${req}</p></div>`;
     data.forEach(day => {
         let h = `<div class="timeline"><div class="timeline-day">Day ${day.day} - ${loc}</div>`;
         day.timeline.forEach(item => {
@@ -160,7 +158,7 @@ function buildDynamicSpots(location, destType) {
         ],
         'tour': [
             { name: "시티 뷰 랜드마크", badge: "포토 스팟", icon: "📸", desc: "이곳에 왔다면 인증샷 필수!", query: `${location} 랜드마크 전망대` },
-            { name: "역사 문화 유적지", badge: "필수 코스", icon: "🏛️", desc: "역사와 문화를 이해할 명소.", query: `${location} फेमस 유적지` }
+            { name: "역사 문화 유적지", badge: "필수 코스", icon: "🏛️", desc: "역사와 문화를 이해할 명소.", query: `${location} 유명 유적지` }
         ],
         'food': [
             { name: "로컬 파머스 마켓", badge: "구경 꿀잼", icon: "🛒", desc: "현지인 삶을 엿볼 야시장.", query: `${location} 야시장 전통시장` },
@@ -178,12 +176,12 @@ function buildDynamicSpots(location, destType) {
 
     const selectedSpots = spotDB[destType] || spotDB['default'];
     selectedSpots.forEach(spot => {
-        const mapUrl = `https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(spot.query)}`;
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.query)}`;
         container.innerHTML += `
             <div class="spot-card card" style="display:flex; padding:15px; gap:15px; align-items:center;">
                 <div class="spot-image" style="font-size:35px; width:70px; height:70px; background:#f1f3f5; border-radius:12px; display:flex; justify-content:center; align-items:center;">${spot.icon}</div>
                 <div class="spot-info" style="flex:1;">
-                    <h4 style="font-size:15px; margin-bottom:4px;">${spot.name}</h4>
+                    <h4 style="font-size:15px; margin-bottom:4px; color:#2D9CDB; font-weight:800;">${spot.name}</h4>
                     <span class="badge" style="background:var(--accent); color:white; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:800;">${spot.badge}</span>
                     <p class="desc" style="font-size:12px; color:var(--text-sub); margin-top:6px;">${spot.desc}</p>
                     <a href="${mapUrl}" target="_blank" style="display:inline-block; margin-top:8px; color:var(--primary); font-weight:800; font-size:12px; text-decoration:none;"><i class="fa-solid fa-map-location-dot"></i> 구글맵 길찾기</a>
