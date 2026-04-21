@@ -1,5 +1,5 @@
 // ⭐ 주의: 반드시 본인의 구글 앱스 스크립트 배포 웹앱 URL로 교체하세요!
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzT58vsjUFgaFjL2A191n25VfRVAj8B9gQGt-9cqcJ5Iq02efg-7oLxqL-uJyDmhV-eHw/exec"; 
+const GAS_URL = "여기에_배포된_URL_입력"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
@@ -7,8 +7,6 @@ let currentAiPlanData = null;
 let currentAiLoc = "";
 let currentAiReq = "";
 let currentAiDest = "";
-let currentAiTips = null;
-let currentAiFood = null;
 let travelStartDate = "";
 let travelEndDate = "";
 
@@ -40,7 +38,6 @@ function switchTab(tabId, element) {
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     element.classList.add('active');
     window.scrollTo(0, 0);
-    
     if (tabId === 'tab-spots' && document.getElementById('travel-location').value) {
         buildDynamicSpots(document.getElementById('travel-location').value, document.getElementById('travel-destination').value || 'default');
     }
@@ -68,11 +65,18 @@ function buildTravelTipsAndFood(location, tips, food) {
     const container = document.getElementById('tips-food-container');
     if (!location) return;
     container.style.display = 'block';
-    let html = `<div style="margin-bottom:12px;"><h3>💡 ${location} 최신 가이드</h3></div><div class="horizontal-scroll">`;
-    html += `<div class="mini-card"><h4>⚠️ 필수 팁</h4><p>${tips || "정보 로딩 중..."}</p></div>`;
+    let html = `<div style="margin-bottom:12px;"><h3 style="color:var(--primary-dark); font-weight:800;">💡 ${location} 최신 가이드</h3></div><div class="horizontal-scroll">`;
+    html += `<div class="mini-card" style="border-radius:16px; border:1px solid var(--border-color);">
+                <h4 style="color:#ef4444; font-weight:800; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> 필수 팁</h4>
+                <p style="font-size:13px; color:var(--text-sub);">${tips || "정보 로딩 중..."}</p>
+             </div>`;
     if (food && food.length > 0) {
         food.forEach(f => {
-            html += `<div class="mini-card"><h4 style="color:var(--accent)">${f.name}</h4><div class="rating">${f.rating}</div><p>${f.desc}</p></div>`;
+            html += `<div class="mini-card" style="border-radius:16px; border:1px solid var(--border-color);">
+                        <h4 style="color:var(--primary); font-weight:800; margin-bottom:4px;">${f.name}</h4>
+                        <div class="rating" style="color:#f59e0b; font-size:12px; margin-bottom:6px;">${f.rating}</div>
+                        <p style="font-size:13px; color:var(--text-sub);">${f.desc}</p>
+                     </div>`;
         });
     }
     container.innerHTML = html + `</div>`;
@@ -108,7 +112,7 @@ async function generatePlan(forceRegenerate = false) {
         const result = await response.json();
         if(result.result === "success") {
             const aiData = JSON.parse(result.aiPlan);
-            currentAiPlanData = aiData; currentAiLoc = loc; currentAiDest = dest;
+            currentAiPlanData = aiData; currentAiLoc = loc; currentAiDest = dest; currentAiReq = requests;
             
             renderAiSchedule(aiData, loc, requests);
             buildTravelTipsAndFood(loc, JSON.parse(result.tips), JSON.parse(result.restaurants));
@@ -127,16 +131,18 @@ async function generatePlan(forceRegenerate = false) {
 function renderAiSchedule(data, loc, req) {
     const container = document.getElementById('schedule-container');
     container.innerHTML = '';
-    if (req) container.innerHTML = `<div class="card" style="background:#fffcf0; border:1px solid #ffe066; margin-bottom:20px;"><h4 style="color:#d9480f; font-size:14px; margin-bottom:8px;">요청사항 반영</h4><p style="font-size:13px;">${req}</p></div>`;
+    if (req) container.innerHTML = `<div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0; margin-bottom:20px; border-radius:16px;"><h4 style="color:#16a34a; font-size:14px; margin-bottom:8px; font-weight:800;"><i class="fa-solid fa-check-circle"></i> 특별 요청 반영</h4><p style="font-size:13px; color:#15803d;">${req}</p></div>`;
+    
     data.forEach(day => {
-        let h = `<div class="timeline"><div class="timeline-day">Day ${day.day} - ${loc}</div>`;
+        let h = `<div class="timeline"><div class="timeline-day" style="background:var(--primary); color:white; border-radius:8px; padding:6px 12px; font-size:14px; font-weight:700; display:inline-block; margin-bottom:15px;">Day ${day.day} - ${loc}</div>`;
         day.timeline.forEach(item => {
             h += `
-            <div class="timeline-item"><div class="time">${item.time}</div><div class="content">
-                <h4 style="font-size:15px; margin-bottom:4px;">${item.title}</h4><p style="font-size:13px; color:var(--text-sub);">${item.desc}</p>
-                <div class="schedule-meta">
-                    ${item.cost !== '-' ? `<span><i class="fa-solid fa-wallet"></i> ${item.cost}</span>` : ''}
-                    ${item.star !== '-' ? `<span class="star-rating"><i class="fa-solid fa-star"></i> ${item.star}</span>` : ''}
+            <div class="timeline-item"><div class="time" style="color:var(--secondary); font-weight:800;">${item.time}</div><div class="content" style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:15px; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+                <h4 style="font-size:15px; margin-bottom:6px; color:var(--text-main); font-weight:800;">${item.title}</h4>
+                <p style="font-size:13px; color:var(--text-sub); margin-bottom:10px; line-height:1.5;">${item.desc}</p>
+                <div class="schedule-meta" style="border-top:1px dashed #e2e8f0; padding-top:10px; font-size:12px; color:#64748b;">
+                    ${item.cost !== '-' ? `<span style="margin-right:12px;"><i class="fa-solid fa-wallet" style="color:var(--primary);"></i> ${item.cost}</span>` : ''}
+                    ${item.star !== '-' ? `<span class="star-rating" style="color:#f59e0b;"><i class="fa-solid fa-star"></i> ${item.star}</span>` : ''}
                 </div>
             </div></div>`;
         });
@@ -178,13 +184,13 @@ function buildDynamicSpots(location, destType) {
     selectedSpots.forEach(spot => {
         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.query)}`;
         container.innerHTML += `
-            <div class="spot-card card" style="display:flex; padding:15px; gap:15px; align-items:center;">
-                <div class="spot-image" style="font-size:35px; width:70px; height:70px; background:#f1f3f5; border-radius:12px; display:flex; justify-content:center; align-items:center;">${spot.icon}</div>
+            <div class="spot-card card" style="display:flex; padding:16px; gap:16px; align-items:center; border-radius:16px;">
+                <div class="spot-image" style="font-size:32px; width:64px; height:64px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; display:flex; justify-content:center; align-items:center;">${spot.icon}</div>
                 <div class="spot-info" style="flex:1;">
-                    <h4 style="font-size:15px; margin-bottom:4px; color:#2D9CDB; font-weight:800;">${spot.name}</h4>
-                    <span class="badge" style="background:var(--accent); color:white; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:800;">${spot.badge}</span>
-                    <p class="desc" style="font-size:12px; color:var(--text-sub); margin-top:6px;">${spot.desc}</p>
-                    <a href="${mapUrl}" target="_blank" style="display:inline-block; margin-top:8px; color:var(--primary); font-weight:800; font-size:12px; text-decoration:none;"><i class="fa-solid fa-map-location-dot"></i> 구글맵 길찾기</a>
+                    <h4 style="font-size:15px; margin-bottom:6px; color:var(--text-main); font-weight:800;">${spot.name}</h4>
+                    <span class="badge" style="background:var(--secondary); color:white; padding:4px 8px; border-radius:8px; font-size:11px; font-weight:700;">${spot.badge}</span>
+                    <p class="desc" style="font-size:13px; color:var(--text-sub); margin-top:8px;">${spot.desc}</p>
+                    <a href="${mapUrl}" target="_blank" style="display:inline-block; margin-top:10px; color:var(--primary); font-weight:800; font-size:13px; text-decoration:none; background:#e0e7ff; padding:6px 12px; border-radius:8px;"><i class="fa-solid fa-map-location-dot"></i> 구글맵 연결</a>
                 </div>
             </div>`;
     });
@@ -204,10 +210,10 @@ function buildDynamicPack(loc, destType) {
     items.forEach((item, index) => {
         const id = 'auto-pack-' + index;
         const html = `
-            <div class="check-item" id="item-wrap-${id}" style="display:flex; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-color);">
-                <input type="checkbox" id="${id}" style="width:18px; height:18px; accent-color:var(--primary);">
-                <label for="${id}" style="flex:1; margin-left:12px; font-size:14px;">${item}</label>
-                <button onclick="document.getElementById('item-wrap-${id}').remove()" style="background:none; border:none; color:var(--danger); cursor:pointer; padding:5px;"><i class="fa-solid fa-trash"></i></button>
+            <div class="check-item" id="item-wrap-${id}" style="display:flex; align-items:center; padding:14px 0; border-bottom:1px solid var(--border-color);">
+                <input type="checkbox" id="${id}" style="width:20px; height:20px; accent-color:var(--primary); cursor:pointer;">
+                <label for="${id}" style="flex:1; margin-left:14px; font-size:15px; color:var(--text-main); font-weight:500;">${item}</label>
+                <button onclick="document.getElementById('item-wrap-${id}').remove()" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:5px; font-size:16px;"><i class="fa-solid fa-trash-can"></i></button>
             </div>`;
         container.insertBefore(document.createRange().createContextualFragment(html), addBox);
     });
@@ -218,10 +224,10 @@ function addPackItem() {
     if(!val) return;
     const id = 'manual-pack-' + Date.now();
     const html = `
-        <div class="check-item" id="item-wrap-${id}" style="display:flex; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-color);">
-            <input type="checkbox" id="${id}" style="width:18px; height:18px; accent-color:var(--primary);">
-            <label for="${id}" style="flex:1; margin-left:12px; font-size:14px;">${val}</label>
-            <button onclick="document.getElementById('item-wrap-${id}').remove()" style="background:none; border:none; color:var(--danger); cursor:pointer; padding:5px;"><i class="fa-solid fa-trash"></i></button>
+        <div class="check-item" id="item-wrap-${id}" style="display:flex; align-items:center; padding:14px 0; border-bottom:1px solid var(--border-color);">
+            <input type="checkbox" id="${id}" style="width:20px; height:20px; accent-color:var(--primary); cursor:pointer;">
+            <label for="${id}" style="flex:1; margin-left:14px; font-size:15px; color:var(--text-main); font-weight:500;">${val}</label>
+            <button onclick="document.getElementById('item-wrap-${id}').remove()" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:5px; font-size:16px;"><i class="fa-solid fa-trash-can"></i></button>
         </div>`;
     document.getElementById('pack-container').insertBefore(document.createRange().createContextualFragment(html), document.getElementById('pack-add-box'));
     document.getElementById('pack-input').value = '';
@@ -245,7 +251,7 @@ async function addExpense() {
         if(res.ok) {
             usedBudget += a; updateBudgetUI();
             document.getElementById('expense-history').style.display = 'block';
-            const html = `<div class="expense-item" id="exp-${Date.now()}" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #eee;"><div><strong>${n}</strong></div><div class="text-danger" style="font-weight:800;">${a.toLocaleString()} 원</div></div>`;
+            const html = `<div class="expense-item" id="exp-${Date.now()}" style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f1f5f9;"><div><strong style="color:var(--text-main);">${n}</strong></div><div class="text-danger" style="font-weight:800; color:#ef4444;">${a.toLocaleString()} 원</div></div>`;
             document.getElementById('expense-list-content').insertAdjacentHTML('afterbegin', html);
             document.getElementById('expense-name').value = ''; document.getElementById('expense-amount').value = '';
         }
@@ -277,7 +283,7 @@ async function fetchServerData() {
             return;
         }
         photos.forEach(p => {
-            gallery.innerHTML += `<div class="photo-card" style="position:relative; background:#fff; padding:10px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.05);"><img src="${p[3]}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;"><div class="photo-loc" style="font-size:11px; margin-top:8px; color:var(--text-main); font-weight:700;"><i class="fa-solid fa-location-dot" style="color:var(--accent);"></i> ${p[2]}</div></div>`;
+            gallery.innerHTML += `<div class="photo-card" style="position:relative; background:#fff; padding:10px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid var(--border-color);"><img src="${p[3]}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;"><div class="photo-loc" style="font-size:12px; margin-top:10px; color:var(--text-main); font-weight:800;"><i class="fa-solid fa-location-dot" style="color:var(--secondary); margin-right:4px;"></i> ${p[2]}</div></div>`;
         });
     } catch(e) {}
 }
@@ -287,22 +293,22 @@ async function recommendHotels() {
     if(!loc) return alert("여행지를 먼저 입력해주세요!");
     const box = document.getElementById('hotel-recommend-box');
     box.style.display = 'block';
-    box.innerHTML = `<div style="font-size:13px; color:var(--primary); padding:10px 0;"><i class="fa-solid fa-spinner fa-spin"></i> 숙소 탐색 중...</div>`;
+    box.innerHTML = `<div style="font-size:13px; color:var(--primary); padding:10px 0; font-weight:700;"><i class="fa-solid fa-spinner fa-spin"></i> 숙소 탐색 중...</div>`;
     try {
         const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "RECOMMEND_HOTELS", location: loc }) });
         const result = await response.json();
         if(result.result === "success") {
             try {
                 const hotels = JSON.parse(result.hotels);
-                let html = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:8px;">숙소를 터치하면 자동 입력됩니다.</div><div style="display:flex; flex-wrap:wrap; gap:6px;">`;
+                let html = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">숙소를 터치하면 자동 입력됩니다.</div><div style="display:flex; flex-wrap:wrap; gap:8px;">`;
                 hotels.forEach(h => {
                     const safeName = h.replace(/'/g, "\\'");
-                    html += `<button onclick="document.getElementById('travel-accommodation').value='${safeName}'; document.getElementById('hotel-recommend-box').style.display='none';" style="background:#f8f9fa; border:1px solid #dee2e6; padding:6px 12px; border-radius:20px; font-size:12px; cursor:pointer; color:var(--text-main);">${h}</button>`;
+                    html += `<button onclick="document.getElementById('travel-accommodation').value='${safeName}'; document.getElementById('hotel-recommend-box').style.display='none';" style="background:#f8fafc; border:1px solid #cbd5e1; padding:8px 14px; border-radius:20px; font-size:13px; cursor:pointer; color:var(--text-main); font-weight:600;">${h}</button>`;
                 });
                 box.innerHTML = html + `</div>`;
-            } catch(e) { box.innerHTML = `<div style="font-size:13px; color:var(--danger);">오류 발생</div>`; }
+            } catch(e) { box.innerHTML = `<div style="font-size:13px; color:#ef4444;">오류 발생</div>`; }
         }
-    } catch(e) { box.innerHTML = `<div style="font-size:13px; color:var(--danger);">통신 에러</div>`; }
+    } catch(e) { box.innerHTML = `<div style="font-size:13px; color:#ef4444;">통신 에러</div>`; }
 }
 
 function promptSavePlan() {
@@ -324,8 +330,8 @@ function toggleSavedPlans() {
 function renderSavedPlansList() {
     const box = document.getElementById('saved-plans-list');
     let trips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
-    if(!trips.length) return box.innerHTML = "<div style='text-align:center; font-size:13px; color:#888;'>보관함이 비어있습니다.</div>";
-    box.innerHTML = trips.reverse().map(t => `<div style="padding:12px; background:#fff; border:1px solid #eee; border-radius:8px; margin-bottom:8px; cursor:pointer; font-weight:700; font-size:14px;" onclick="loadSpecificPlan(${t.id})">🌍 ${t.name} <span style="font-size:11px; font-weight:400; color:#888; display:block; margin-top:4px;">${t.loc} | ${t.date}</span></div>`).join('');
+    if(!trips.length) return box.innerHTML = "<div style='text-align:center; font-size:13px; color:var(--text-sub);'>보관함이 비어있습니다.</div>";
+    box.innerHTML = trips.reverse().map(t => `<div style="padding:14px; background:#f8fafc; border:1px solid var(--border-color); border-radius:12px; margin-bottom:10px; cursor:pointer; font-weight:800; font-size:14px; color:var(--primary-dark);" onclick="loadSpecificPlan(${t.id})">🌍 ${t.name} <span style="font-size:11px; font-weight:500; color:var(--text-sub); display:block; margin-top:6px;">${t.loc} | ${t.date}</span></div>`).join('');
 }
 
 function loadSpecificPlan(id) {
