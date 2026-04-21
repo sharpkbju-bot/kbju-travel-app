@@ -1,5 +1,5 @@
 // ⭐ 주의: 반드시 본인의 구글 앱스 스크립트 배포 웹앱 URL로 교체하세요!
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzT58vsjUFgaFjL2A191n25VfRVAj8B9gQGt-9cqcJ5Iq02efg-7oLxqL-uJyDmhV-eHw/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxLhw24bhx0oY-481BhqZXt9CK1prlvAAmXf7eEOv8yjoLJjlVYSF4aeNLzylJJfG_Tdg/exec"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
