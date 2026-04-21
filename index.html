@@ -11,14 +11,8 @@
     <link rel="stylesheet" href="style.css">
     <style>
         :root {
-            --primary: #6366f1; 
-            --primary-dark: #4f46e5;
-            --secondary: #a855f7; 
-            --bg-color: #f8fafc; 
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
-            --border-color: #e2e8f0;
+            --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #a855f7; 
+            --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-sub: #64748b; --border-color: #e2e8f0;
         }
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Pretendard', sans-serif; }
         
@@ -27,57 +21,54 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); 
             padding: 20px; box-sizing: border-box; width: 100%; margin-bottom: 16px;
         }
-        
-        .section-header h2, .card h3 { color: var(--primary-dark) !important; font-weight: 800 !important; }
+        .section-header h2, .card h3 { color: var(--primary-dark) !important; font-weight: 800 !important; margin-bottom: 12px; }
         
         input, select, textarea { 
             width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); 
             border-radius: 12px; padding: 14px 16px; background: #f8fafc; 
             font-size: 14px; outline: none; transition: all 0.2s; margin-top: 6px;
         }
-        input:focus, select:focus, textarea:focus { 
-            border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); 
-        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
         
-        /* ⭐ 버튼 높낮이 어긋남 방지를 위해 margin: 0 추가 및 정렬 고도화 */
         .primary-btn, .secondary-btn, .camera-btn {
-            padding: 10px 14px !important;
-            border-radius: 12px !important;
-            font-size: 14px !important;
-            font-weight: 700 !important;
-            line-height: 1.4 !important;
-            height: auto !important;
-            box-sizing: border-box !important;
-            margin: 0 !important; /* 브라우저 기본 마진 무시 */
+            padding: 10px 14px !important; border-radius: 12px !important;
+            font-size: 14px !important; font-weight: 700 !important; line-height: 1.4 !important;
+            height: auto !important; box-sizing: border-box !important; margin: 0 !important;
         }
         .primary-btn { 
-            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
-            color: white; border: none; 
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25); transition: opacity 0.2s;
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; 
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
         }
-        .secondary-btn { 
-            background: #f1f5f9; color: #475569; border: none; 
-            display: flex; align-items: center; justify-content: center;
-        }
+        .secondary-btn { background: #f1f5f9; color: #475569; border: none; display: flex; align-items: center; justify-content: center; }
         
         .app-header { border-bottom: none; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); }
         #header-title { color: var(--primary-dark); font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .bottom-nav .nav-item.active { color: var(--primary); font-weight: 700; }
         .bottom-nav .nav-item i { font-size: 20px; margin-bottom: 4px; }
+
+        /* 가이드 팝업(Modal) 스타일 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 9999;
+            display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+        }
+        .modal-content {
+            background: #fff; border-radius: 20px; width: 100%; max-width: 400px; max-height: 80vh;
+            overflow-y: auto; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-step { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed #e2e8f0; }
+        .modal-step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
     </style>
 </head>
 <body>
     <div id="loading">
         <div class="spinner" style="border-top-color: var(--secondary);"></div>
-        <div id="loadingText" style="font-weight:800; color:var(--primary);">데이터 분석 중...</div>
+        <div id="loadingText" style="font-weight:800; color:var(--primary);">데이터 불러오는 중...</div>
     </div>
     
     <header class="app-header">
         <h1 id="header-title">K&S 여행 스토리</h1>
-        <div class="header-actions">
-            <button class="icon-btn" onclick="fetchServerData()" style="color:var(--text-sub);"><i class="fa-solid fa-rotate-right"></i></button>
-        </div>
+        <div class="header-actions"><button class="icon-btn" onclick="fetchServerData()" style="color:var(--text-sub);"><i class="fa-solid fa-rotate-right"></i></button></div>
     </header>
     
     <main id="app-main" style="padding-bottom: 80px;">
@@ -87,6 +78,11 @@
                 <p style="color:rgba(255,255,255,0.9); margin:0;">AI와 라이브러리가 결합된 스마트 플래너</p>
             </div>
             
+            <div class="card" onclick="document.getElementById('guide-modal').style.display='flex'" style="margin: 0 16px 16px 16px; background: linear-gradient(to right, #e0e7ff, #f3e8ff); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+                <div style="font-weight: 800; color: var(--primary-dark); font-size: 15px;"><i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> 새로운 여행지 추가 절차 확인</div>
+                <i class="fa-solid fa-chevron-right" style="color: var(--primary);"></i>
+            </div>
+
             <div id="weather-info-card" class="weather-card" style="display: none; background: var(--primary-dark); border-radius: 16px; margin: 0 16px 20px 16px; padding: 16px; box-sizing: border-box;"></div>
             
             <div class="card setup-card" style="margin: 0 16px;">
@@ -94,7 +90,7 @@
                 
                 <div class="input-group" style="margin-bottom: 16px;">
                     <label style="font-weight: 700; color: var(--text-main); font-size: 13px;">🌍 상세 여행 목적지</label>
-                    <input type="text" id="travel-location" placeholder="예: 일본 오사카" onchange="updateWeatherInfo()">
+                    <input type="text" id="travel-location" placeholder="예: 방콕, 오사카" onchange="updateWeatherAndCurrency()">
                 </div>
                 
                 <div class="input-group" style="margin-bottom: 16px;">
@@ -140,9 +136,8 @@
                     <label style="font-weight: 700; color: var(--text-main); font-size: 13px;">🏨 예약한 숙소 정보</label>
                     <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center;">
                         <input type="text" id="travel-accommodation" placeholder="숙소 이름 또는 위치" style="flex: 1; margin-top: 0;">
-                        <button class="secondary-btn" style="width: 80px; height: 46px !important; background:#fce7f3; color:#db2777; flex-shrink: 0;" onclick="recommendHotels()">AI 추천</button>
+                        <button class="secondary-btn" style="width: 85px; height: 46px !important; background:#e0e7ff; color:#4f46e5; flex-shrink: 0;" onclick="searchGoogleMapsHotel()"><i class="fa-solid fa-map-location-dot" style="margin-right:4px;"></i> 맵 검색</button>
                     </div>
-                    <div id="hotel-recommend-box" style="margin-top:10px; display:none;"></div>
                 </div>
                 
                 <div class="input-group" style="margin-bottom: 20px;">
@@ -154,8 +149,8 @@
                 <input type="hidden" id="travel-days" value="">
                 
                 <div style="display: flex; gap: 10px; width: 100%; box-sizing: border-box; align-items: stretch;">
-                    <button class="primary-btn" onclick="generatePlan(false)" style="flex: 1; height: 50px !important;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i> 일정 생성</button>
-                    <button class="secondary-btn" onclick="generatePlan(true)" style="flex: 1; height: 50px !important; background: #e2e8f0; color: #334155;"><i class="fa-solid fa-rotate-right" style="margin-right:6px;"></i> 다시 생성</button>
+                    <button class="primary-btn" onclick="generatePlan()" style="flex: 1; height: 50px !important;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i> 일정 생성</button>
+                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; height: 50px !important; background: #e2e8f0; color: #334155;"><i class="fa-solid fa-rotate-right" style="margin-right:6px;"></i> 조건 초기화</button>
                 </div>
             </div>
         </section>
@@ -166,12 +161,13 @@
                 <div style="display: flex; gap: 8px; margin-top: 15px; margin-bottom: 25px;">
                     <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; background: #e0e7ff; color: var(--primary); font-size: 13px; height: 40px !important;"><i class="fa-solid fa-floppy-disk" style="margin-right:4px;"></i> 저장</button>
                     <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1; font-size: 13px; height: 40px !important;"><i class="fa-solid fa-folder-open" style="margin-right:4px;"></i> 보관함</button>
-                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; background: #fee2e2; color: #ef4444; font-size: 13px; height: 40px !important;"><i class="fa-solid fa-trash" style="margin-right:4px;"></i> 비우기</button>
                 </div>
                 <div id="saved-plans-list" class="plan-list-box" style="margin-bottom: 20px;"></div>
             </div>
             <div id="tips-food-container" style="display: none; margin-bottom: 25px;"></div>
-            <div id="schedule-container"></div>
+            <div id="schedule-container">
+                <div style="text-align: center; padding: 40px 0; color: var(--text-sub); font-size: 14px;">설정 탭에서 일정을 생성해주세요.</div>
+            </div>
         </section>
 
         <section id="tab-budget" class="tab-content" style="padding: 0 16px;">
@@ -186,8 +182,11 @@
                 <div class="input-group"><input type="text" id="expense-name" placeholder="내역 입력"></div>
                 <div class="input-group row-group" style="display:flex; gap:10px; margin-bottom:15px;">
                     <input type="number" id="expense-amount" placeholder="금액" style="flex:2;">
-                    <select id="expense-currency" style="flex:1;">
-                        <option value="KRW">KRW</option><option value="USD">USD</option><option value="JPY">JPY</option>
+                    <select id="expense-currency" style="flex:1; font-weight:700;">
+                        <option value="KRW">KRW</option><option value="USD">USD</option>
+                        <option value="JPY">JPY</option><option value="THB">THB</option>
+                        <option value="VND">VND</option><option value="TWD">TWD</option>
+                        <option value="PHP">PHP</option><option value="EUR">EUR</option>
                     </select>
                 </div>
                 <button class="primary-btn" onclick="addExpense()" style="width:100%; height:48px !important;">저장하기</button>
@@ -222,6 +221,28 @@
         <button class="nav-item" onclick="switchTab('tab-pack', this)"><i class="fa-solid fa-suitcase"></i><span>준비물</span></button>
         <button class="nav-item" onclick="switchTab('tab-spots', this)"><i class="fa-solid fa-map-location-dot"></i><span>명소</span></button>
     </nav>
+
+    <div id="guide-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'">
+        <div class="modal-content">
+            <h3 style="color:var(--primary-dark); font-weight:800; margin-top:0; margin-bottom:20px; font-size:18px;">새로운 여행지 추가 절차 🚀</h3>
+            <div class="modal-step">
+                <strong style="color:var(--primary);">1단계:</strong> 여행 계획을 엑셀이나 텍스트로 자유롭게 정리합니다.
+            </div>
+            <div class="modal-step">
+                <strong style="color:var(--primary);">2단계:</strong> 제미나이(AI)에게 엑셀 파일을 주며 "우리 앱용 JSON 코드로 변환해줘" 라고 요청합니다.
+            </div>
+            <div class="modal-step">
+                <strong style="color:var(--primary);">3단계:</strong> 구글 스프레드시트의 <b>Library 탭</b>을 엽니다.
+            </div>
+            <div class="modal-step">
+                <strong style="color:var(--primary);">4단계:</strong> A열에 조건(예: 방콕_5일)을 적고, B열에 제미나이가 준 JSON 코드를 복사해서 붙여넣습니다.
+            </div>
+            <div class="modal-step">
+                <strong style="color:var(--primary);">5단계:</strong> 앱의 설정 탭에서 A열에 적은 조건과 똑같이 맞춘 뒤 '일정 생성'을 누르면 즉시 화면에 나타납니다!
+            </div>
+            <button class="primary-btn" onclick="document.getElementById('guide-modal').style.display='none'" style="width:100%; margin-top:20px !important;">확인했습니다</button>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
