@@ -15,6 +15,8 @@
             --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-sub: #64748b; --border-color: #e2e8f0;
         }
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Pretendard', sans-serif; margin: 0; }
+        
+        /* 레이아웃 기본 */
         section { padding: 16px; box-sizing: border-box; }
         .card { 
             background: var(--card-bg); border-radius: 16px; 
@@ -23,40 +25,35 @@
         }
         .section-header h2, .card h3 { color: var(--primary-dark); font-weight: 800; margin-bottom: 12px; margin-top: 0; }
         
-        input, select { 
+        input, select, textarea { 
             width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); 
             border-radius: 12px; padding: 12px; background: #f8fafc; 
             font-size: 14px; outline: none; transition: all 0.2s; margin-top: 6px;
         }
 
-        /* ⭐ 버튼 규격 시스템화 (중요) */
+        /* 버튼 스타일 시스템화 */
         .btn-base {
             border: none; border-radius: 10px; font-weight: 700; cursor: pointer;
             display: flex; align-items: center; justify-content: center; white-space: nowrap;
-            transition: opacity 0.2s;
+            box-sizing: border-box;
         }
         
-        /* 일정 생성 등 큰 버튼 */
+        /* 메인 큰 버튼 (생성/동기화) */
         .primary-btn { 
             background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; 
-            width: 100%; height: 50px; font-size: 15px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
         }
         
-        /* ⭐ 미니 버튼 (맵 검색, 저장, 초기화 전용) - 저장 버튼 규격과 100% 일치 */
+        .secondary-btn { background: #f1f5f9; color: #475569; }
+        
+        /* 미니 버튼 (맵 검색, 저장, 초기화 전용) */
         .mini-btn {
-            height: 40px !important; 
-            min-height: 40px !important;
-            width: 85px !important; /* 85px로 가로 폭 강제 고정 */
-            font-size: 13px !important; 
-            padding: 0 !important; 
-            flex-shrink: 0 !important;
-            margin: 0 !important;
+            height: 40px !important; min-height: 40px !important; width: 85px !important;
+            font-size: 13px !important; padding: 0 !important; flex-shrink: 0 !important; margin: 0 !important;
         }
         .mini-btn.blue { background: #e0e7ff !important; color: var(--primary) !important; }
         .mini-btn.gray { background: #f1f5f9 !important; color: #475569 !important; }
         .mini-btn.red { background: #fee2e2 !important; color: #ef4444 !important; }
-        
-        /* 일정 탭 전용 (3개 버튼이므로 가로 폭 유동적 대응) */
         .tab-btn { width: 100% !important; flex: 1; }
 
         .app-header { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); padding: 15px; }
@@ -64,11 +61,10 @@
         .bottom-nav .nav-item.active { color: var(--primary); font-weight: 700; }
 
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 9999;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999;
             display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
         }
-        .modal-content { background: #fff; border-radius: 20px; width: 100%; max-width: 400px; padding: 24px; }
+        .modal-content { background: #fff; border-radius: 20px; width: 100%; max-width: 400px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -104,7 +100,13 @@
                     <label style="font-weight: 700; font-size: 13px;">👨‍👩‍👧‍👦 구성원</label>
                     <select id="travel-type">
                         <option value="">구성원 선택</option>
-                        <option value="혼자">혼자</option><option value="연인">연인</option><option value="2030부부">20~30대 부부</option><option value="4050부부">40~50대 부부</option><option value="가족_성인">가족(성인자녀)</option>
+                        <option value="혼자">혼자</option>
+                        <option value="친구">친구</option>
+                        <option value="연인">연인</option>
+                        <option value="2030부부">20~30대 부부</option>
+                        <option value="4050부부">40~50대 부부</option>
+                        <option value="가족_청소년">가족(청소년 이하 자녀 포함)</option>
+                        <option value="가족_성인">가족(성인 자녀 포함)</option>
                     </select>
                 </div>
                 
@@ -142,9 +144,9 @@
                 
                 <input type="hidden" id="travel-days" value="">
                 
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-base primary-btn" onclick="generatePlan()" style="flex: 1;">✨ 일정 생성</button>
-                    <button class="btn-base secondary-btn" onclick="resetApp()" style="width: 100px; height: 50px; background: #e2e8f0; color: #334155;">초기화</button>
+                <div style="display: flex; gap: 10px; width: 100%; height: 50px;">
+                    <button class="btn-base primary-btn" onclick="generatePlan()" style="flex: 1; height: 100%; font-size: 15px; margin: 0;">✨ 일정 생성</button>
+                    <button class="btn-base secondary-btn" onclick="resetApp()" style="flex: 0 0 100px; height: 100%; font-size: 14px; margin: 0; background: #e2e8f0; color: #334155; padding: 0;">초기화</button>
                 </div>
             </div>
         </section>
@@ -161,7 +163,7 @@
             </div>
             <div id="tips-food-container" style="display: none; margin-bottom: 25px;"></div>
             <div id="schedule-container">
-                <div style="text-align: center; padding: 40px 0; color: var(--text-sub); font-size: 14px;">설정 탭에서 일정을 생성해주세요.</div>
+                <div style="text-align: center; padding: 60px 0; color: var(--text-sub); font-size: 14px;">설정 탭에서 일정을 생성해주세요.</div>
             </div>
         </section>
 
@@ -181,7 +183,7 @@
                         <option value="KRW">KRW</option><option value="THB">THB</option><option value="JPY">JPY</option><option value="USD">USD</option>
                     </select>
                 </div>
-                <button class="btn-base primary-btn" onclick="addExpense()" style="height: 45px;">저장하기</button>
+                <button class="btn-base primary-btn" onclick="addExpense()" style="height: 50px;">저장하기</button>
             </div>
             <div class="card" id="expense-history" style="display: none;"><div id="expense-list-content"></div></div>
         </section>
@@ -191,16 +193,16 @@
             <div class="card" id="pack-container">
                 <div id="pack-add-box" style="display: flex; gap: 8px;">
                     <input type="text" id="pack-input" placeholder="준비물 추가" style="margin:0; height: 42px;">
-                    <button onclick="addPackItem()" class="btn-base primary-btn" style="width: 42px; height: 42px;"><i class="fa-solid fa-plus"></i></button>
+                    <button onclick="addPackItem()" class="btn-base primary-btn" style="width: 42px; height: 42px; padding:0;"><i class="fa-solid fa-plus"></i></button>
                 </div>
             </div>
-            <button class="btn-base primary-btn" onclick="syncPackData()">서버 동기화</button>
+            <button class="btn-base primary-btn" onclick="syncPackData()" style="height: 50px;">서버 동기화</button>
         </section>
 
         <section id="tab-spots" class="tab-content">
             <div class="section-header"><h2>📸 큐레이션</h2></div>
             <div id="spots-container"></div>
-            <button class="btn-base primary-btn" onclick="document.getElementById('camera-input').click()" style="margin: 20px 0;"><i class="fa-solid fa-camera" style="margin-right:8px;"></i>사진 촬영</button>
+            <button class="btn-base primary-btn" onclick="document.getElementById('camera-input').click()" style="margin: 20px 0; height: 50px;"><i class="fa-solid fa-camera" style="margin-right:8px;"></i>사진 촬영</button>
             <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event)">
             <div id="photo-gallery" class="photo-grid"></div>
         </section>
@@ -217,8 +219,12 @@
     <div id="guide-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'">
         <div class="modal-content">
             <h3 style="color:var(--primary-dark); font-weight:800; margin-top:0;">여행지 추가 절차 🚀</h3>
-            <p style="font-size:14px; line-height:1.6;">
-                1. 엑셀로 일정 정리<br>2. 제이에게 JSON 변환 요청<br>3. 구글 시트 <b>Library</b> 탭에 복사<br>4. A열에 '도시_일수' 입력<br>5. 일정 생성 클릭!
+            <p style="font-size:14px; line-height:1.6; color:var(--text-main);">
+                1. 계획을 엑셀로 정리<br>
+                2. 제이미에게 JSON 변환 요청<br>
+                3. 구글 시트 <b>Library</b> 탭에 복사<br>
+                4. A열에 '도시_일수' 명칭 입력<br>
+                5. 앱에서 일정 생성 클릭!
             </p>
             <button class="btn-base primary-btn" onclick="document.getElementById('guide-modal').style.display='none'" style="height:40px;">확인</button>
         </div>
