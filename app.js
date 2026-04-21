@@ -1,5 +1,5 @@
 // ⭐ 주의: 반드시 본인의 구글 앱스 스크립트 배포 웹앱 URL로 교체하세요!
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxwy7T0sNp4l2XfebODr7pvnO2rDCK3EfBI86LzAsqBIrWtm5omfW75jGtu-sUcKTYITQ/exec"; 
+const GAS_URL = "여기에_배포된_URL_입력"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
@@ -153,12 +153,21 @@ async function generatePlan() {
     }
 }
 
-// ⭐ 일정 화면 비우기(초기화) 함수 추가
-function clearScheduleScreen() {
-    if(!confirm("화면에 표시된 일정을 지우시겠습니까? (보관함에 저장된 데이터는 삭제되지 않습니다.)")) return;
+// ⭐ 일정 화면 지우기(초기화) 버튼 작동 함수
+function resetScheduleScreen() {
+    if(!confirm("화면에 표시된 일정을 초기화하시겠습니까?\n(보관함에 저장된 데이터는 삭제되지 않습니다.)")) return;
+    
+    // 일정 및 팁 화면 비우기
     document.getElementById('schedule-container').innerHTML = '<div style="text-align: center; padding: 40px 0; color: var(--text-sub); font-size: 14px;">설정 탭에서 일정을 생성해주세요.</div>';
     document.getElementById('tips-food-container').style.display = 'none';
+    
+    // 현재 메모리에 올라간 데이터 비우기
     currentAiPlanData = null;
+    currentAiLoc = "";
+    currentAiDest = "";
+    currentAiReq = "";
+    
+    alert("화면이 초기화되었습니다.");
 }
 
 function renderAiSchedule(data, loc, req) {
@@ -360,7 +369,7 @@ function loadSpecificPlan(id) {
     document.getElementById('saved-plans-list').style.display = 'none';
 }
 
-function resetApp() { if(confirm("초기화하시겠습니까?")) location.reload(); }
+function resetApp() { if(confirm("조건을 초기화하시겠습니까?")) location.reload(); }
 
 function loadLastTrip() {
     let trips = JSON.parse(localStorage.getItem('savedTripsArray') || "[]");
