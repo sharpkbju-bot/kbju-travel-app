@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 travelEndDate = instance.formatDate(selectedDates[1], "Y-m-d");
                 const diffDays = Math.ceil(Math.abs(selectedDates[1] - selectedDates[0]) / (1000 * 60 * 60 * 24)) + 1;
                 document.getElementById('travel-days').value = diffDays;
-                updateWeatherInfo();
+                updateWeatherAndCurrency();
             }
         }
     });
@@ -43,8 +43,24 @@ function switchTab(tabId, element) {
     }
 }
 
-async function updateWeatherInfo() {
+// ⭐ 날씨 업데이트 및 통화 자동 변경 로직 통합
+async function updateWeatherAndCurrency() {
     const loc = document.getElementById('travel-location').value;
+    
+    // 1. 여행지에 따른 통화(Currency) 자동 변환
+    const currencySelect = document.getElementById('expense-currency');
+    if (loc) {
+        if (/일본|오사카|도쿄|후쿠오카|삿포로|교토/.test(loc)) currencySelect.value = 'JPY';
+        else if (/태국|방콕|푸껫|푸켓|치앙마이|파타야/.test(loc)) currencySelect.value = 'THB';
+        else if (/베트남|다낭|나트랑|냐짱|하노이|호치민|푸꾸옥/.test(loc)) currencySelect.value = 'VND';
+        else if (/대만|타이베이|가오슝/.test(loc)) currencySelect.value = 'TWD';
+        else if (/필리핀|세부|보라카이|마닐라|보홀/.test(loc)) currencySelect.value = 'PHP';
+        else if (/미국|하와이|괌|사이판|뉴욕|LA/.test(loc)) currencySelect.value = 'USD';
+        else if (/유럽|프랑스|이탈리아|독일|스페인|파리|로마/.test(loc)) currencySelect.value = 'EUR';
+        else currencySelect.value = 'KRW';
+    }
+
+    // 2. 날씨 정보 업데이트
     const weatherCard = document.getElementById('weather-info-card');
     if (!loc || !travelStartDate) return;
     weatherCard.style.display = 'flex';
@@ -61,14 +77,28 @@ async function updateWeatherInfo() {
     } catch (e) { weatherCard.style.display = 'none'; }
 }
 
+// ⭐ 구글 맵스 숙소 검색 로직
+function searchGoogleMapsHotel() {
+    const loc = document.getElementById('travel-location').value;
+    const accom = document.getElementById('travel-accommodation').value;
+    if (!loc) return alert("상세 여행 목적지를 먼저 입력해주세요!");
+    
+    // 여행지 + 숙소명(또는 기본값 '호텔') 조합으로 구글맵 검색 URL 생성
+    const query = encodeURIComponent(`${loc} ${accom || '호텔'}`);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+    
+    // 새 창으로 구글맵 열기
+    window.open(googleMapsUrl, '_blank');
+}
+
 function buildTravelTipsAndFood(location, tips, food) {
     const container = document.getElementById('tips-food-container');
     if (!location) return;
     container.style.display = 'block';
-    let html = `<div style="margin-bottom:12px;"><h3 style="color:var(--primary-dark); font-weight:800;">💡 ${location} 최신 가이드</h3></div><div class="horizontal-scroll">`;
+    let html = `<div style="margin-bottom:12px;"><h3 style="color:var(--primary-dark); font-weight:800;">💡 ${location} 핵심 가이드</h3></div><div class="horizontal-scroll">`;
     html += `<div class="mini-card" style="border-radius:16px; border:1px solid var(--border-color);">
                 <h4 style="color:#ef4444; font-weight:800; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> 필수 팁</h4>
-                <p style="font-size:13px; color:var(--text-sub);">${tips || "정보 로딩 중..."}</p>
+                <p style="font-size:13px; color:var(--text-sub);">${tips || "정보가 없습니다."}</p>
              </div>`;
     if (food && food.length > 0) {
         food.forEach(f => {
@@ -82,7 +112,8 @@ function buildTravelTipsAndFood(location, tips, food) {
     container.innerHTML = html + `</div>`;
 }
 
-async function generatePlan(forceRegenerate = false) {
+// 자체 DB 호출 함수
+async function generatePlan() {
     const loc = document.getElementById('travel-location').value;
     const type = document.getElementById('travel-type').value;
     const members = document.getElementById('travel-members').value;
@@ -95,12 +126,10 @@ async function generatePlan(forceRegenerate = false) {
 
     if (!loc || !type || !days) return alert("필수 항목(목적지, 구성원, 기간)을 입력하세요!");
 
-    const loadingText = forceRegenerate ? "AI가 새로운 코스를 작성하고 있습니다..." : "데이터 탐색 및 AI 분석 중...";
-    showLoading(true, loadingText);
+    showLoading(true, "라이브러리에서 정보를 찾는 중...");
     
     const payload = {
         action: "SAVE_PLAN", 
-        forceRegenerate: forceRegenerate,
         location: loc, type: type, members: members,
         destination: dest, days: days, accommodation: accom,
         departureTime: depTime, budget: budget, requests: requests,
@@ -110,6 +139,7 @@ async function generatePlan(forceRegenerate = false) {
     try {
         const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
         const result = await response.json();
+        
         if(result.result === "success") {
             const aiData = JSON.parse(result.aiPlan);
             currentAiPlanData = aiData; currentAiLoc = loc; currentAiDest = dest; currentAiReq = requests;
@@ -123,15 +153,25 @@ async function generatePlan(forceRegenerate = false) {
             alert("일정 로딩 완료! ✈️");
             switchTab('tab-schedule', document.querySelectorAll('.nav-item')[1]);
         } else {
-            alert("서버 오류: " + (result.message || "알 수 없는 에러"));
+            alert("안내: " + (result.message || "데이터를 찾을 수 없습니다."));
         }
-    } catch (e) { alert("서버와의 통신에 실패했습니다."); } finally { showLoading(false); }
+    } catch (e) { 
+        alert("네트워크 연결이 불안정합니다. 잠시 후 다시 시도해주세요."); 
+    } finally { 
+        showLoading(false); 
+    }
 }
 
 function renderAiSchedule(data, loc, req) {
     const container = document.getElementById('schedule-container');
     container.innerHTML = '';
-    if (req) container.innerHTML = `<div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0; margin-bottom:20px; border-radius:16px;"><h4 style="color:#16a34a; font-size:14px; margin-bottom:8px; font-weight:800;"><i class="fa-solid fa-check-circle"></i> 특별 요청 반영</h4><p style="font-size:13px; color:#15803d;">${req}</p></div>`;
+    
+    if(!data || data.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">일정 데이터를 불러오지 못했습니다.</div>';
+        return;
+    }
+
+    if (req) container.innerHTML = `<div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0; margin-bottom:20px; border-radius:16px;"><h4 style="color:#16a34a; font-size:14px; margin-bottom:8px; font-weight:800;"><i class="fa-solid fa-check-circle"></i> 특별 요청사항</h4><p style="font-size:13px; color:#15803d;">${req}</p></div>`;
     
     data.forEach(day => {
         let h = `<div class="timeline"><div class="timeline-day" style="background:var(--primary); color:white; border-radius:8px; padding:6px 12px; font-size:14px; font-weight:700; display:inline-block; margin-bottom:15px;">Day ${day.day} - ${loc}</div>`;
@@ -168,7 +208,7 @@ function buildDynamicSpots(location, destType) {
         ],
         'food': [
             { name: "로컬 파머스 마켓", badge: "구경 꿀잼", icon: "🛒", desc: "현지인 삶을 엿볼 야시장.", query: `${location} 야시장 전통시장` },
-            { name: "미식 가이드 식당", badge: "미식 여행", icon: "🍽️", desc: "여행의 백미, 로컬 최고 맛집.", query: `${location} 맛집 미슐랭` }
+            { name: "미식 가이드 식당", badge: "미식 여행", icon: "🍽️", desc: "여행의 백미, 로컬 최고 맛집.", query: `${location} 맛집` }
         ],
         'activity': [
             { name: "익스트림 테마파크", badge: "액티비티", icon: "🎢", desc: "짜릿한 스릴을 즐길 테마파크.", query: `${location} 테마파크 놀이공원` },
@@ -286,29 +326,6 @@ async function fetchServerData() {
             gallery.innerHTML += `<div class="photo-card" style="position:relative; background:#fff; padding:10px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid var(--border-color);"><img src="${p[3]}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;"><div class="photo-loc" style="font-size:12px; margin-top:10px; color:var(--text-main); font-weight:800;"><i class="fa-solid fa-location-dot" style="color:var(--secondary); margin-right:4px;"></i> ${p[2]}</div></div>`;
         });
     } catch(e) {}
-}
-
-async function recommendHotels() {
-    const loc = document.getElementById('travel-location').value;
-    if(!loc) return alert("여행지를 먼저 입력해주세요!");
-    const box = document.getElementById('hotel-recommend-box');
-    box.style.display = 'block';
-    box.innerHTML = `<div style="font-size:13px; color:var(--primary); padding:10px 0; font-weight:700;"><i class="fa-solid fa-spinner fa-spin"></i> 숙소 탐색 중...</div>`;
-    try {
-        const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "RECOMMEND_HOTELS", location: loc }) });
-        const result = await response.json();
-        if(result.result === "success") {
-            try {
-                const hotels = JSON.parse(result.hotels);
-                let html = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">숙소를 터치하면 자동 입력됩니다.</div><div style="display:flex; flex-wrap:wrap; gap:8px;">`;
-                hotels.forEach(h => {
-                    const safeName = h.replace(/'/g, "\\'");
-                    html += `<button onclick="document.getElementById('travel-accommodation').value='${safeName}'; document.getElementById('hotel-recommend-box').style.display='none';" style="background:#f8fafc; border:1px solid #cbd5e1; padding:8px 14px; border-radius:20px; font-size:13px; cursor:pointer; color:var(--text-main); font-weight:600;">${h}</button>`;
-                });
-                box.innerHTML = html + `</div>`;
-            } catch(e) { box.innerHTML = `<div style="font-size:13px; color:#ef4444;">오류 발생</div>`; }
-        }
-    } catch(e) { box.innerHTML = `<div style="font-size:13px; color:#ef4444;">통신 에러</div>`; }
 }
 
 function promptSavePlan() {
