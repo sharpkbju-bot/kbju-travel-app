@@ -9,6 +9,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* 카드 제목 컬러 및 볼드 처리 */
+        .section-header h2, .card h3, .setup-card h3 {
+            color: #2D9CDB !important;
+            font-weight: 800 !important;
+            margin-bottom: 12px;
+        }
+        /* 버튼 슬림 및 세련된 스타일 통일 */
+        .primary-btn, .secondary-btn, .camera-btn {
+            padding: 10px 14px !important;
+            border-radius: 8px !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            line-height: 1.4 !important;
+            height: auto !important;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body>
     <div id="loading">
@@ -88,22 +106,22 @@
                     <label>🏨 예약한 숙소 정보</label>
                     <div style="display: flex; gap: 6px;">
                         <input type="text" id="travel-accommodation" placeholder="숙소 이름 또는 위치" style="flex: 1;">
-                        <button class="secondary-btn" style="width: auto; padding: 0 12px; background:#fff0f3; color:#ff4757;" onclick="recommendHotels()">AI 추천</button>
+                        <button class="secondary-btn" style="width: auto; background:#fff0f3; color:#ff4757; border:none;" onclick="recommendHotels()">AI 추천</button>
                     </div>
                     <div id="hotel-recommend-box" style="margin-top:10px; display:none;"></div>
                 </div>
                 
                 <div class="input-group">
-                    <label>⏰ 출발 시간 & 기타 요청</label>
-                    <input type="time" id="travel-departure" style="margin-bottom: 8px;">
-                    <textarea id="travel-requests" placeholder="특별히 고려해야 할 사항을 적어주세요." rows="2"></textarea>
+                    <label>⏰ 출발 시간 & 추가요청사항</label>
+                    <input type="time" id="travel-departure" style="margin-bottom: 6px;">
+                    <input type="text" id="travel-requests" placeholder="예: 부모님이 걷기 편한 동선으로 짜주세요" style="width: 100%; box-sizing: border-box;">
                 </div>
                 
                 <input type="hidden" id="travel-days" value="">
                 
                 <div style="display: flex; gap: 8px; margin-top: 15px;">
-                    <button class="primary-btn" onclick="generatePlan(false)" style="flex: 7;">✨ 최신 데이터로 일정 생성</button>
-                    <button class="secondary-btn" onclick="generatePlan(true)" style="flex: 3; background: #e9ecef; color: #495057; font-weight: 800; border: none;">🔄 다시 생성</button>
+                    <button class="primary-btn" onclick="generatePlan(false)" style="flex: 1;">✨ 일정 생성</button>
+                    <button class="secondary-btn" onclick="generatePlan(true)" style="flex: 1; background: #e9ecef; color: #495057; border: none;">🔄 다시 생성</button>
                 </div>
             </div>
         </section>
@@ -112,9 +130,9 @@
             <div class="section-header">
                 <h2>📅 데일리 코스</h2>
                 <div style="display: flex; gap: 8px; margin-top: 15px; margin-bottom: 25px;">
-                    <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; background: var(--primary-light); color: var(--primary); font-size: 13px;"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
-                    <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1; font-size: 13px;"><i class="fa-solid fa-folder-open"></i> 보관함</button>
-                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; background: #ffe5e5; color: var(--danger); font-size: 13px;"><i class="fa-solid fa-rotate-right"></i> 비우기</button>
+                    <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; background: var(--primary-light); color: var(--primary);"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
+                    <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1;"><i class="fa-solid fa-folder-open"></i> 보관함</button>
+                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; background: #ffe5e5; color: var(--danger); border:none;"><i class="fa-solid fa-rotate-right"></i> 비우기</button>
                 </div>
                 <div id="saved-plans-list" class="plan-list-box"></div>
             </div>
@@ -138,7 +156,7 @@
                         <option value="KRW">KRW</option><option value="USD">USD</option><option value="JPY">JPY</option>
                     </select>
                 </div>
-                <button class="secondary-btn" onclick="addExpense()">저장</button>
+                <button class="primary-btn" onclick="addExpense()" style="width:100%;">저장</button>
             </div>
             <div class="card" id="expense-history" style="display: none;"><div id="expense-list-content"></div></div>
         </section>
@@ -146,20 +164,20 @@
         <section id="tab-pack" class="tab-content">
             <div class="section-header"><h2>🎒 준비물</h2></div>
             <div class="card checklist-card" id="pack-container">
-                <div class="add-item-box" id="pack-add-box" style="display: flex; gap: 8px; width: 100%; box-sizing: border-box; align-items: stretch;">
-                    <input type="text" id="pack-input" placeholder="준비물 추가..." style="flex: 1; min-width: 0; box-sizing: border-box; margin: 0;">
-                    <button onclick="addPackItem()" style="flex-shrink: 0; width: 45px; height: 100%; background: var(--primary); color: white; border: none; border-radius: 8px; margin: 0;"><i class="fa-solid fa-plus"></i></button>
+                <div class="add-item-box" id="pack-add-box" style="display: flex; gap: 8px; width: 100%; box-sizing: border-box; align-items: center;">
+                    <input type="text" id="pack-input" placeholder="준비물 추가..." style="flex: 1; height: 42px; margin: 0; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px;">
+                    <button onclick="addPackItem()" style="flex-shrink: 0; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; background: #2D9CDB; color: white; border: none; border-radius: 8px; margin: 0; padding: 0;"><i class="fa-solid fa-plus"></i></button>
                 </div>
             </div>
-            <button class="primary-btn" onclick="syncPackData()">서버 동기화</button>
+            <button class="primary-btn" onclick="syncPackData()" style="width:100%;">서버 동기화</button>
         </section>
 
         <section id="tab-spots" class="tab-content">
             <div class="section-header"><h2>📸 큐레이션 & 갤러리</h2></div>
             <div id="spots-container"></div>
             <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event)">
-            <button class="camera-btn" onclick="document.getElementById('camera-input').click()" style="margin-top: 20px;"><i class="fa-solid fa-camera"></i> 사진 촬영 및 저장</button>
-            <div id="photo-gallery" class="photo-grid"></div>
+            <button class="camera-btn primary-btn" onclick="document.getElementById('camera-input').click()" style="width: 100%; margin-top: 15px;"><i class="fa-solid fa-camera"></i> 사진 촬영 및 저장</button>
+            <div id="photo-gallery" class="photo-grid" style="margin-top: 15px;"></div>
         </section>
     </main>
 
