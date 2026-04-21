@@ -4,13 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>K&S의 여행 스토리</title>
+    
     <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <div id="loading">
         <div class="spinner"></div>
         <div id="loadingText" style="font-weight:800; color:#2D9CDB;">데이터 분석 중...</div>
@@ -24,10 +31,11 @@
     </header>
 
     <main id="app-main">
+        
         <section id="tab-home" class="tab-content active">
             <div class="welcome-banner">
-                <h2>데이터 기반 최적화<br>맞춤형 여행 설계 ✈️</h2>
-                <p>구글 시트 라이브러리와 AI가 결합된 최신 정보를 제공합니다.</p>
+                <h2>가장 최신의 정보로<br>완벽한 여행을 설계합니다 ✈️</h2>
+                <p>실시간 트렌드와 리뷰를 반영한 커스텀 일정을 경험하세요.</p>
             </div>
 
             <div id="weather-info-card" class="weather-card" style="display: none;"></div>
@@ -41,7 +49,7 @@
                 </div>
 
                 <div class="input-group">
-                    <label>👨‍👩‍👧‍👦 여행 구성원 (세분화)</label>
+                    <label>👨‍👩‍👧‍👦 여행 구성원</label>
                     <select id="travel-type">
                         <option value="">구성원을 선택해주세요</option>
                         <option value="혼자">혼자</option>
@@ -62,13 +70,13 @@
                     </div>
                     <div class="half-input">
                         <label>💰 예산 범위 (원)</label>
-                        <input type="number" id="travel-budget" placeholder="예: 2000000">
+                        <input type="number" id="travel-budget" placeholder="예: 1000000">
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label>📅 여행 기간 선택</label>
-                    <input type="text" id="travel-dates" placeholder="시작일 ~ 종료일 선택" readonly>
+                    <label>📅 여행 기간 (시작일 ~ 종료일)</label>
+                    <input type="text" id="travel-dates" placeholder="날짜를 선택하세요" readonly>
                 </div>
 
                 <div class="input-group">
@@ -86,44 +94,84 @@
                     <label>🏨 예약한 숙소 정보</label>
                     <div style="display: flex; gap: 6px;">
                         <input type="text" id="travel-accommodation" placeholder="숙소 이름 또는 위치" style="flex: 1;">
-                        <button class="secondary-btn" style="width: auto; padding: 0 12px; background:#fff0f3; color:#ff4757;" onclick="recommendHotels()">AI 추천</button>
+                        <button class="secondary-btn" style="width: auto; padding: 0 12px; background:#fff0f3; color:#ff4757; font-weight:800;" onclick="recommendHotels()">AI 추천</button>
                     </div>
                     <div id="hotel-recommend-box" style="margin-top:10px; display:none;"></div>
                 </div>
 
                 <div class="input-group">
-                    <label>⏰ 출발 시간 & 기타 요청</label>
-                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                        <input type="time" id="travel-departure" style="flex: 1;">
-                        <span style="align-self: center; font-size: 12px; color: var(--text-sub);">출발 기준</span>
-                    </div>
-                    <textarea id="travel-requests" placeholder="특별히 고려해야 할 사항을 적어주세요." rows="2"></textarea>
+                    <label>⏰ 출발 시간 & 추가 요청</label>
+                    <input type="time" id="travel-departure" style="margin-bottom: 8px;">
+                    <textarea id="travel-requests" placeholder="AI가 일정에 반영해 드립니다. (예: 걷기 편한 코스 위주로)" rows="2"></textarea>
                 </div>
 
                 <input type="hidden" id="travel-days" value="">
-                <button class="primary-btn" onclick="generatePlan()">✨ 최신 데이터로 일정 확인하기</button>
+                <button class="primary-btn" onclick="generatePlan()">✨ 최신 AI 일정 생성하기</button>
             </div>
         </section>
 
         <section id="tab-schedule" class="tab-content">
             <div class="section-header">
                 <h2>📅 데일리 코스</h2>
+                <div style="display: flex; gap: 8px; margin-top: 15px;">
+                    <button class="secondary-btn" onclick="promptSavePlan()" style="flex: 1; background: var(--primary-light); color: var(--primary); font-size: 13px;"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
+                    <button class="secondary-btn" onclick="toggleSavedPlans()" style="flex: 1; font-size: 13px;"><i class="fa-solid fa-folder-open"></i> 보관함</button>
+                    <button class="secondary-btn" onclick="resetApp()" style="flex: 1; background: #ffe5e5; color: var(--danger); font-size: 13px;"><i class="fa-solid fa-rotate-right"></i> 비우기</button>
+                </div>
                 <div id="saved-plans-list" class="plan-list-box"></div>
             </div>
             <div id="tips-food-container" style="display: none; margin-bottom: 25px;"></div>
-            <div id="schedule-container">
-                <div style="text-align: center; color: var(--text-sub); padding: 50px 0;">아직 데이터가 없습니다.</div>
-            </div>
+            <div id="schedule-container"></div>
         </section>
 
-        </main>
+        <section id="tab-budget" class="tab-content">
+            <div class="section-header"><h2>💸 지출 관리</h2></div>
+            <div class="budget-summary card">
+                <div class="budget-row"><span>총 예산</span><strong id="display-budget">0 원</strong></div>
+                <div class="budget-row"><span>사용 금액</span><strong class="text-danger" id="used-budget">0 원</strong></div>
+                <div class="budget-row total"><span>남은 예산</span><strong class="text-primary" id="remaining-budget">0 원</strong></div>
+            </div>
+            <div class="card">
+                <h3>지출 내역 추가</h3>
+                <div class="input-group"><input type="text" id="expense-name" placeholder="내역"></div>
+                <div class="input-group row-group">
+                    <input type="number" id="expense-amount" placeholder="금액" class="half-input">
+                    <select id="expense-currency" class="half-input">
+                        <option value="KRW">KRW</option><option value="USD">USD</option><option value="JPY">JPY</option>
+                    </select>
+                </div>
+                <button class="secondary-btn" onclick="addExpense()">저장</button>
+            </div>
+            <div class="card" id="expense-history" style="display: none;"><div id="expense-list-content"></div></div>
+        </section>
+
+        <section id="tab-pack" class="tab-content">
+            <div class="section-header"><h2>🎒 준비물</h2></div>
+            <div class="card checklist-card" id="pack-container">
+                <div class="add-item-box" id="pack-add-box">
+                    <input type="text" id="pack-input" placeholder="준비물 추가...">
+                    <button onclick="addPackItem()"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <button class="primary-btn" onclick="syncPackData()">서버 동기화</button>
+        </section>
+
+        <section id="tab-spots" class="tab-content">
+            <div class="section-header"><h2>📸 큐레이션 & 갤러리</h2></div>
+            <div id="spots-container"></div>
+            <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event)">
+            <button class="camera-btn" onclick="document.getElementById('camera-input').click()"><i class="fa-solid fa-camera"></i> 사진 촬영 및 저장</button>
+            <div id="photo-gallery" class="photo-grid"></div>
+        </section>
+
+    </main>
 
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('tab-home', this)"><i class="fa-solid fa-house"></i><span>설정</span></button>
         <button class="nav-item" onclick="switchTab('tab-schedule', this)"><i class="fa-regular fa-calendar-check"></i><span>일정</span></button>
-        <button class="nav-item"><i class="fa-solid fa-calculator"></i><span>예산</span></button>
-        <button class="nav-item"><i class="fa-solid fa-suitcase"></i><span>준비물</span></button>
-        <button class="nav-item"><i class="fa-solid fa-map-location-dot"></i><span>명소</span></button>
+        <button class="nav-item" onclick="switchTab('tab-budget', this)"><i class="fa-solid fa-calculator"></i><span>예산</span></button>
+        <button class="nav-item" onclick="switchTab('tab-pack', this)"><i class="fa-solid fa-suitcase"></i><span>준비물</span></button>
+        <button class="nav-item" onclick="switchTab('tab-spots', this)"><i class="fa-solid fa-map-location-dot"></i><span>명소</span></button>
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
