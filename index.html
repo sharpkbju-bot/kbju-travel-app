@@ -16,7 +16,6 @@
         }
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Pretendard', sans-serif; margin: 0; }
         
-        /* 레이아웃 기본 */
         section { padding: 16px; box-sizing: border-box; }
         .card { 
             background: var(--card-bg); border-radius: 16px; 
@@ -31,22 +30,18 @@
             font-size: 14px; outline: none; transition: all 0.2s; margin-top: 6px;
         }
 
-        /* 버튼 스타일 시스템화 */
         .btn-base {
             border: none; border-radius: 10px; font-weight: 700; cursor: pointer;
             display: flex; align-items: center; justify-content: center; white-space: nowrap;
             box-sizing: border-box;
         }
         
-        /* 메인 큰 버튼 (생성/동기화) */
         .primary-btn { 
             background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; 
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
         }
-        
         .secondary-btn { background: #f1f5f9; color: #475569; }
         
-        /* 미니 버튼 (맵 검색, 저장, 초기화 전용) */
         .mini-btn {
             height: 40px !important; min-height: 40px !important; width: 85px !important;
             font-size: 13px !important; padding: 0 !important; flex-shrink: 0 !important; margin: 0 !important;
@@ -125,6 +120,17 @@
                     <label style="font-weight: 700; font-size: 13px;">📅 기간</label>
                     <input type="text" id="travel-dates" placeholder="날짜 선택" readonly style="background:#fff;">
                 </div>
+
+                <div class="input-group" style="margin-bottom: 16px;">
+                    <label style="font-weight: 700; font-size: 13px;">📍 여행 테마</label>
+                    <select id="travel-destination">
+                        <option value="default">테마를 선택해주세요</option>
+                        <option value="relax">휴양 (호캉스, 스파)</option>
+                        <option value="tour">관광 (명소, 랜드마크)</option>
+                        <option value="food">맛집 탐방 (로컬 푸드)</option>
+                        <option value="activity">액티비티 (스포츠, 체험)</option>
+                    </select>
+                </div>
                 
                 <div class="input-group" style="margin-bottom: 20px;">
                     <label style="font-weight: 700; font-size: 13px;">🏨 숙소 정보</label>
@@ -183,7 +189,7 @@
                         <option value="KRW">KRW</option><option value="THB">THB</option><option value="JPY">JPY</option><option value="USD">USD</option>
                     </select>
                 </div>
-                <button class="btn-base primary-btn" onclick="addExpense()" style="height: 50px;">저장하기</button>
+                <button class="btn-base primary-btn" onclick="addExpense()" style="height: 45px;">저장하기</button>
             </div>
             <div class="card" id="expense-history" style="display: none;"><div id="expense-list-content"></div></div>
         </section>
@@ -221,7 +227,7 @@
             <h3 style="color:var(--primary-dark); font-weight:800; margin-top:0;">여행지 추가 절차 🚀</h3>
             <p style="font-size:14px; line-height:1.6; color:var(--text-main);">
                 1. 계획을 엑셀로 정리<br>
-                2. 제이에게 JSON 변환 요청<br>
+                2. 제이미에게 JSON 변환 요청<br>
                 3. 구글 시트 <b>Library</b> 탭에 복사<br>
                 4. A열에 '도시_일수' 명칭 입력<br>
                 5. 앱에서 일정 생성 클릭!
