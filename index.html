@@ -3,194 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>K&S의 여행 스토리</title>
+    <title>K&S 스마트 트래블</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="style.css">
     <style>
+        /* 최신 트렌드 컬러 및 변수 세팅 */
         :root {
-            --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #a855f7; 
-            --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-sub: #64748b; --border-color: #e2e8f0;
+            --primary: #3182F6; /* 트렌디한 쨍한 블루 */
+            --primary-light: #E8F3FF; /* 버튼 클릭/서브 컬러용 */
+            --bg-color: #F9FAFB; /* 아주 연한 배경 (카드와 대비) */
+            --card-bg: #FFFFFF;
+            --text-main: #191F28; /* 완전 블랙이 아닌 세련된 진회색 */
+            --text-sub: #8B95A1; /* 안내 문구용 */
+            --input-bg: #F2F4F6; /* 테두리 없는 인풋용 배경 */
+            --danger: #F04452;
+            --danger-light: #FEECEF;
         }
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Pretendard', sans-serif; margin: 0; }
-        
-        section { padding: 16px; box-sizing: border-box; }
+
+        /* 폰트 자간 최적화 (-0.02em) */
+        * { font-family: 'Pretendard', sans-serif; letter-spacing: -0.02em; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
+        section { padding: 16px 20px; }
+
+        /* 고급스러운 카드 디자인 (테두리 삭제, 라운드 확대, 소프트 쉐도우) */
         .card { 
-            background: var(--card-bg); border-radius: 16px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); 
-            padding: 20px; box-sizing: border-box; width: 100%; margin-bottom: 16px;
+            background: var(--card-bg); border-radius: 20px; 
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04); 
+            padding: 24px; width: 100%; margin-bottom: 20px; border: none;
         }
-        .section-header h2, .card h3 { color: var(--primary-dark); font-weight: 800; margin-bottom: 12px; margin-top: 0; }
+        .section-header h2 { color: var(--text-main); font-weight: 800; font-size: 22px; margin: 0 0 16px 0; }
+        .card h3 { color: var(--text-main); font-weight: 800; font-size: 18px; margin: 0 0 16px 0; }
         
+        /* 라벨 디자인 (작고 또렷하게) */
+        label { font-size: 13px; font-weight: 600; color: #4E5968; margin-bottom: 8px; display: block; }
+
+        /* 트렌디한 입력창 (테두리 없이 둥글고 회색 배경) */
         input, select, textarea { 
-            width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); 
-            border-radius: 12px; padding: 12px; background: #f8fafc; 
-            font-size: 14px; outline: none; transition: all 0.2s; margin-top: 6px;
+            width: 100%; border: none; border-radius: 12px; padding: 16px; 
+            background: var(--input-bg); color: var(--text-main); 
+            font-size: 15px; font-weight: 500; transition: 0.2s;
         }
+        input::placeholder { color: #AEB5BC; font-weight: 400; }
+        input:focus, select:focus { background: #FFFFFF; box-shadow: 0 0 0 2px var(--primary); }
+        .input-group { margin-bottom: 20px; }
 
+        /* 버튼 시스템 통일 */
         .btn-base {
-            border: none; border-radius: 10px; font-weight: 700; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; white-space: nowrap; box-sizing: border-box;
+            border: none; border-radius: 14px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.15s;
         }
-        .primary-btn { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25); }
-        .secondary-btn { background: #f1f5f9; color: #475569; }
+        .btn-base:active { transform: scale(0.97); }
+
+        /* 메인 둥근 버튼 */
+        .primary-btn { background: var(--primary); color: white; width: 100%; height: 54px; font-size: 16px; }
+        .secondary-btn { background: var(--input-bg); color: #4E5968; height: 54px; font-size: 15px; }
         
-        .mini-btn { height: 40px !important; min-height: 40px !important; font-size: 13px !important; padding: 0 12px !important; }
-        .mini-btn.blue { background: #e0e7ff !important; color: var(--primary) !important; }
-        .mini-btn.gray { background: #f1f5f9 !important; color: #475569 !important; }
-        .mini-btn.red { background: #fee2e2 !important; color: #ef4444 !important; }
+        /* 미니/서브 버튼 */
+        .mini-btn { height: 44px; min-height: 44px; padding: 0 14px; font-size: 14px; border-radius: 10px; }
+        .mini-btn.blue { background: var(--primary-light); color: var(--primary); }
+        .mini-btn.gray { background: var(--input-bg); color: #4E5968; }
+        .mini-btn.red { background: var(--danger-light); color: var(--danger); }
 
-        .app-header { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); padding: 15px; }
-        #header-title { color: var(--primary-dark); font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; font-size: 20px; }
-        .bottom-nav .nav-item.active { color: var(--primary); font-weight: 700; }
+        /* 헤더 */
+        .app-header { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        #header-title { color: var(--text-main); font-weight: 800; margin: 0; font-size: 20px; }
 
-        /* 대시보드 스타일 추가 */
-        #dashboard-container { display: none; }
-        .dday-badge { background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 14px; display: inline-block; margin-bottom: 10px; }
+        /* 대시보드 티켓 UI */
+        .ticket-card { background: var(--primary); color: white; text-align: center; padding: 32px 20px; border-radius: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(49, 130, 246, 0.2); }
+        .dday-badge { background: rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; display: inline-block; margin-bottom: 12px; backdrop-filter: blur(4px); }
+
+        /* 타임라인 디자인 고도화 */
+        .timeline-day { background: var(--text-main); color: white; border-radius: 10px; padding: 8px 14px; font-size: 14px; font-weight: 700; display: inline-block; margin-bottom: 16px; }
+        .timeline-item { display: flex; gap: 16px; margin-bottom: 20px; }
+        .time { font-weight: 800; color: var(--primary); font-size: 15px; width: 45px; flex-shrink: 0; padding-top: 4px; }
+        .content { background: #FFFFFF; border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; flex: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .content h4 { margin: 0 0 6px 0; font-size: 16px; color: var(--text-main); font-weight: 800; }
+        .content p { margin: 0 0 12px 0; font-size: 14px; color: var(--text-sub); line-height: 1.5; }
+
+        /* 바텀 네비게이션 */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #FFFFFF; display: flex; border-top: 1px solid var(--border-color); padding-bottom: env(safe-area-inset-bottom); z-index: 1000; box-shadow: 0 -4px 16px rgba(0,0,0,0.03); }
+        .nav-item { flex: 1; padding: 12px 0; border: none; background: none; color: #AEB5BC; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+        .nav-item.active { color: var(--text-main); }
+        .nav-item i { font-size: 22px; transition: 0.2s; }
+        .nav-item.active i { color: var(--primary); transform: translateY(-2px); }
+        .nav-item span { font-size: 11px; font-weight: 700; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 로딩 모달 */
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { border: 4px solid #F2F4F6; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 16px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div id="loading"><div class="spinner"></div><div id="loadingText" style="font-weight:800; color:var(--primary);">데이터 처리 중...</div></div>
+    <div id="loading"><div class="spinner"></div><div id="loadingText" style="font-weight:700; color:var(--text-main); font-size: 15px;">코스를 불러오고 있습니다...</div></div>
     
     <header class="app-header">
-        <h1 id="header-title">K&S 스마트 트래블</h1>
-        <div class="header-actions"><button onclick="fetchServerData()" style="border:none; background:none; color:var(--text-sub);"><i class="fa-solid fa-rotate-right"></i></button></div>
+        <h1 id="header-title">K&S Travel</h1>
+        <button onclick="fetchServerData()" style="border:none; background:none; color:var(--text-sub); font-size: 20px;"><i class="fa-solid fa-rotate-right"></i></button>
     </header>
     
-    <main id="app-main" style="padding-bottom: 80px;">
+    <main id="app-main" style="padding-bottom: 90px;">
+        
         <section id="tab-home" class="tab-content active">
             
-            <div id="dashboard-container">
-                <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; text-align: center; padding: 30px 20px;">
-                    <div id="dash-dday" class="dday-badge">D-DAY 계산중</div>
-                    <h2 id="dash-title" style="margin: 10px 0; font-size: 24px; font-weight: 800;">방콕 5일 여행</h2>
-                    <p id="dash-desc" style="margin: 0; opacity: 0.9; font-size: 14px;">설레는 여행이 곧 시작됩니다!</p>
-                    <button class="btn-base" onclick="toggleSetupMode()" style="margin: 20px auto 0; background: rgba(255,255,255,0.2); color: white; height: 36px; padding: 0 16px; font-size: 13px;">여행 설정 수정하기</button>
+            <div id="dashboard-container" style="display: none; margin-bottom: 24px;">
+                <div class="ticket-card">
+                    <div id="dash-dday" class="dday-badge">D-DAY</div>
+                    <h2 id="dash-title" style="margin: 0 0 8px 0; font-size: 26px; font-weight: 800;">방콕 5일 여행</h2>
+                    <p id="dash-desc" style="margin: 0; opacity: 0.9; font-size: 15px;">설레는 여행이 곧 시작됩니다!</p>
+                    <button class="btn-base" onclick="toggleSetupMode()" style="margin: 24px auto 0; background: rgba(255,255,255,0.2); color: white; height: 40px; padding: 0 20px; font-size: 14px;">여행 설정 수정하기</button>
                 </div>
             </div>
 
             <div id="setup-container">
-                <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 16px; margin-bottom: 16px; padding: 24px; color: white;">
-                    <h2 style="color:white; margin:0 0 8px 0; font-size: 22px;">맞춤형 여행 설계 ✈️</h2>
-                    <p style="margin:0; opacity: 0.9;">우리만의 여행 라이브러리 기반 플래너</p>
+                <div style="background: var(--text-main); border-radius: 20px; padding: 28px 24px; margin-bottom: 24px; color: white;">
+                    <h2 style="margin:0 0 10px 0; font-size: 24px; font-weight: 800;">어디로 떠나볼까요? ✈️</h2>
+                    <p style="margin:0; color: #AEB5BC; font-size: 15px;">나만의 라이브러리 기반 스마트 플래너</p>
                 </div>
+
+                <div class="card" onclick="document.getElementById('guide-modal').style.display='flex'" style="background: var(--primary-light); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 20px 24px;">
+                    <div style="font-weight: 800; color: var(--primary); font-size: 15px;"><i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> 여행지 추가 절차 알아보기</div>
+                    <i class="fa-solid fa-chevron-right" style="color: var(--primary);"></i>
+                </div>
+
+                <div id="weather-info-card" class="card" style="display: none; background: #191F28; color:white; flex-direction: row; align-items: center; justify-content: space-between;"></div>
                 
                 <div class="card setup-card">
-                    <h3>기본 여행 설정</h3>
-                    <div class="input-group" style="margin-bottom: 16px;">
-                        <label style="font-weight: 700; font-size: 13px;">🌍 여행 목적지</label>
-                        <input type="text" id="travel-location" placeholder="예: 방콕" onchange="updateWeatherAndCurrency()">
+                    <h3>여행 기본 설정</h3>
+                    <div class="input-group">
+                        <label>🌍 여행 목적지</label>
+                        <input type="text" id="travel-location" placeholder="예: 방콕, 오사카" onchange="updateWeatherAndCurrency()">
                     </div>
                     
-                    <div class="input-group" style="margin-bottom: 16px;">
-                        <label style="font-weight: 700; font-size: 13px;">👨‍👩‍👧‍👦 구성원</label>
+                    <div class="input-group">
+                        <label>👨‍👩‍👧‍👦 일행 구성</label>
                         <select id="travel-type">
-                            <option value="">구성원 선택</option>
+                            <option value="">누구와 함께 가나요?</option>
                             <option value="혼자">혼자</option><option value="친구">친구</option><option value="연인">연인</option>
                             <option value="2030부부">20~30대 부부</option><option value="4050부부">40~50대 부부</option>
-                            <option value="가족_청소년">가족(청소년 자녀)</option><option value="가족_성인">가족(성인 자녀)</option>
+                            <option value="가족_청소년">가족 (청소년 자녀 포함)</option><option value="가족_성인">가족 (성인 자녀 포함)</option>
                         </select>
                     </div>
                     
-                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                    <div style="display: flex; gap: 16px; margin-bottom: 20px;">
                         <div style="flex: 1;">
-                            <label style="font-weight: 700; font-size: 13px;">👥 총 인원</label>
-                            <input type="number" id="travel-members" placeholder="명" style="text-align: right;">
+                            <label>👥 총 인원</label>
+                            <div style="position: relative;">
+                                <input type="number" id="travel-members" placeholder="0" style="text-align: right; padding-right: 40px;">
+                                <span style="position: absolute; right: 16px; top: 16px; font-size: 15px; color: var(--text-sub); font-weight:600;">명</span>
+                            </div>
                         </div>
                         <div style="flex: 1;">
-                            <label style="font-weight: 700; font-size: 13px;">💰 총 예산(원)</label>
-                            <input type="number" id="travel-budget" placeholder="0">
+                            <label>💰 총 예산(원)</label>
+                            <input type="number" id="travel-budget" placeholder="0" style="text-align: right;">
                         </div>
                     </div>
                     
-                    <div class="input-group" style="margin-bottom: 16px;">
-                        <label style="font-weight: 700; font-size: 13px;">📅 여행 기간</label>
-                        <input type="text" id="travel-dates" placeholder="날짜 선택" readonly style="background:#fff;">
+                    <div class="input-group">
+                        <label>📅 여행 기간</label>
+                        <input type="text" id="travel-dates" placeholder="여행 날짜를 선택해주세요" readonly style="background: #fff; border: 1px solid var(--border-color);">
                     </div>
 
-                    <div class="input-group" style="margin-bottom: 16px;">
-                        <label style="font-weight: 700; font-size: 13px;">📍 주요 테마</label>
+                    <div class="input-group">
+                        <label>📍 메인 테마</label>
                         <select id="travel-destination">
-                            <option value="default">테마를 선택해주세요</option>
-                            <option value="relax">휴양 (호캉스, 스파)</option><option value="tour">관광 (명소, 랜드마크)</option>
-                            <option value="food">맛집 탐방 (로컬 푸드)</option><option value="activity">액티비티 (스포츠, 체험)</option>
+                            <option value="default">가장 기대하는 테마는?</option>
+                            <option value="relax">휴양 및 호캉스</option><option value="tour">랜드마크 관광</option>
+                            <option value="food">현지 맛집 탐방</option><option value="activity">액티비티 및 체험</option>
                         </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>🏨 예약한 숙소</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="travel-accommodation" placeholder="숙소명을 입력해주세요" style="margin: 0; flex: 1;">
+                            <button class="btn-base mini-btn blue" onclick="searchGoogleMapsHotel()" style="height: 52px !important; width: 80px !important;"><i class="fa-solid fa-map-location-dot" style="margin-right:4px;"></i>지도</button>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>⏰ 출발 시간 / 추가 요청사항</label>
+                        <input type="time" id="travel-departure" style="margin-bottom: 8px;">
+                        <input type="text" id="travel-requests" placeholder="예: 부모님과 함께, 걷기 편한 코스">
                     </div>
                     
                     <input type="hidden" id="travel-days" value="">
                     
-                    <div style="display: flex; gap: 10px; width: 100%; height: 50px; margin-top: 20px;">
-                        <button class="btn-base primary-btn" onclick="generatePlan()" style="flex: 1; height: 100%; font-size: 15px;">✨ 일정 생성 (DB 연동)</button>
-                        <button class="btn-base secondary-btn" onclick="resetApp()" style="flex: 0 0 80px; height: 100%; font-size: 13px;">초기화</button>
+                    <div style="display: flex; gap: 12px; margin-top: 32px;">
+                        <button class="btn-base primary-btn" onclick="generatePlan()" style="flex: 1;">✨ 일정 생성하기</button>
+                        <button class="btn-base secondary-btn" onclick="resetApp()" style="width: 80px;">초기화</button>
                     </div>
                 </div>
             </div>
-            <div id="weather-info-card" class="weather-card" style="display: none; background: var(--primary-dark); border-radius: 16px; margin-top: 16px; padding: 16px; color:white;"></div>
         </section>
 
         <section id="tab-schedule" class="tab-content">
             <div class="section-header">
                 <h2>📅 스마트 데일리 코스</h2>
-                <div style="display: flex; gap: 6px; margin-bottom: 20px; width: 100%;">
-                    <button class="btn-base mini-btn blue" onclick="promptSavePlan()" style="flex:1;"><i class="fa-solid fa-floppy-disk" style="margin-right:4px;"></i>저장</button>
+                <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+                    <button class="btn-base mini-btn blue" onclick="promptSavePlan()" style="flex:1;"><i class="fa-solid fa-bookmark" style="margin-right:4px;"></i>저장</button>
                     <button class="btn-base mini-btn gray" onclick="toggleSavedPlans()" style="flex:1;"><i class="fa-solid fa-folder-open" style="margin-right:4px;"></i>보관함</button>
-                    <button class="btn-base mini-btn red" onclick="resetScheduleScreen()" style="flex:1;"><i class="fa-solid fa-eraser" style="margin-right:4px;"></i>비우기</button>
+                    <button class="btn-base mini-btn red" onclick="resetScheduleScreen()" style="flex:1;"><i class="fa-solid fa-trash-can" style="margin-right:4px;"></i>비우기</button>
                 </div>
-                <div id="saved-plans-list" class="plan-list-box"></div>
+                <div id="saved-plans-list" style="display:none; margin-bottom:20px;"></div>
             </div>
-            <div id="tips-food-container" style="display: none; margin-bottom: 25px;"></div>
+            
+            <div id="tips-food-container" style="display: none; margin-bottom: 30px;"></div>
             <div id="schedule-container">
-                <div style="text-align: center; padding: 60px 0; color: var(--text-sub); font-size: 14px;">설정 탭에서 일정을 생성해주세요.</div>
+                <div style="text-align: center; padding: 80px 0; color: var(--text-sub); font-size: 15px;">홈 화면에서 일정을 생성해주세요.</div>
             </div>
         </section>
 
         <section id="tab-budget" class="tab-content">
-            <div class="section-header"><h2>💸 지출 및 정산 관리</h2></div>
-            <div class="budget-summary card" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color:white; margin-bottom: 12px;">
-                <div class="budget-row"><span>총 예산</span><strong id="display-budget">0 원</strong></div>
-                <div class="budget-row"><span>총 사용 금액</span><strong id="used-budget">0 원</strong></div>
-                <div class="budget-row total" style="border-top:1px solid rgba(255,255,255,0.2); padding-top:10px;"><span>남은 예산</span><strong id="remaining-budget">0 원</strong></div>
+            <div class="section-header"><h2>💸 가계부 & 정산</h2></div>
+            
+            <div class="card" style="background: var(--text-main); color:white; padding: 24px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; opacity: 0.8;"><span>총 예산</span><strong id="display-budget">0 원</strong></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; opacity: 0.8;"><span>사용 금액</span><strong id="used-budget">0 원</strong></div>
+                <div style="display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 16px;"><span>남은 예산</span><strong id="remaining-budget" style="color:#4ADE80;">0 원</strong></div>
             </div>
             
-            <div class="card" style="background: #e0e7ff; border: none; margin-bottom: 16px; padding: 16px;">
+            <div class="card" style="background: var(--primary-light); padding: 24px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-weight: 800; color: var(--primary-dark); font-size: 14px;"><i class="fa-solid fa-calculator"></i> 1인당 예상 정산 금액</div>
-                    <div id="dutch-pay-amount" style="font-weight: 800; font-size: 18px; color: var(--primary-dark);">0 원</div>
+                    <div style="font-weight: 800; color: var(--primary); font-size: 15px;"><i class="fa-solid fa-calculator"></i> 1인당 정산 금액</div>
+                    <div id="dutch-pay-amount" style="font-weight: 800; font-size: 20px; color: var(--primary);">0 원</div>
                 </div>
-                <div id="dutch-pay-desc" style="font-size: 12px; color: var(--text-sub); margin-top: 4px; text-align: right;">인원수를 입력해주세요.</div>
+                <div id="dutch-pay-desc" style="font-size: 13px; color: var(--text-sub); margin-top: 6px; text-align: right;">총 인원수를 입력해주세요.</div>
             </div>
 
             <div class="card">
-                <h3>지출 추가</h3>
-                <input type="text" id="expense-name" placeholder="사용 내역 입력 (예: 점심 식사)">
-                <div style="display:flex; gap:10px; margin: 10px 0;">
-                    <input type="number" id="expense-amount" placeholder="금액" style="flex:2;">
+                <h3>지출 내역 추가</h3>
+                <input type="text" id="expense-name" placeholder="어디서 사용하셨나요?">
+                <div style="display:flex; gap:12px; margin: 12px 0 20px 0;">
+                    <input type="number" id="expense-amount" placeholder="얼마인가요?" style="flex:2;">
                     <select id="expense-currency" style="flex:1;">
-                        <option value="KRW">KRW</option><option value="THB">THB</option><option value="JPY">JPY</option><option value="USD">USD</option>
+                        <option value="KRW">KRW</option><option value="THB">THB</option><option value="JPY">JPY</option><option value="USD">USD</option><option value="VND">VND</option>
                     </select>
                 </div>
-                <button class="btn-base primary-btn" onclick="addExpense()" style="height: 45px; width: 100%;">기록하기</button>
+                <button class="btn-base primary-btn" onclick="addExpense()">내역 저장하기</button>
             </div>
-            <div class="card" id="expense-history" style="display: none;"><div id="expense-list-content"></div></div>
+            <div id="expense-history" style="display: none; padding-top: 10px;"><div id="expense-list-content"></div></div>
         </section>
 
         <section id="tab-pack" class="tab-content">
             <div class="section-header"><h2>🎒 스마트 준비물</h2></div>
-            <div class="card" id="pack-container">
-                <div id="pack-add-box" style="display: flex; gap: 8px;">
-                    <input type="text" id="pack-input" placeholder="추가할 준비물 입력" style="margin:0; height: 42px;">
-                    <button onclick="addPackItem()" class="btn-base primary-btn" style="width: 42px; height: 42px; padding:0;"><i class="fa-solid fa-plus"></i></button>
+            <div class="card" id="pack-container" style="padding: 16px 24px;">
+                <div id="pack-add-box" style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="pack-input" placeholder="직접 준비물 추가" style="margin:0; height: 48px;">
+                    <button onclick="addPackItem()" class="btn-base primary-btn" style="width: 48px; height: 48px; padding:0; border-radius: 12px;"><i class="fa-solid fa-plus"></i></button>
                 </div>
             </div>
-            <button class="btn-base primary-btn" onclick="syncPackData()" style="height: 50px;">서버 동기화</button>
+            <button class="btn-base primary-btn" onclick="syncPackData()">서버에 리스트 저장</button>
         </section>
 
         <section id="tab-spots" class="tab-content">
-            <div class="section-header"><h2>📸 갤러리 보관함</h2></div>
+            <div class="section-header"><h2>📸 장소 큐레이션</h2></div>
             <div id="spots-container"></div>
-            <button class="btn-base primary-btn" onclick="document.getElementById('camera-input').click()" style="margin: 20px 0; height: 50px; width: 100%;"><i class="fa-solid fa-camera" style="margin-right:8px;"></i>사진 추가하기</button>
+            <button class="btn-base primary-btn" onclick="document.getElementById('camera-input').click()" style="margin: 24px 0;"><i class="fa-solid fa-camera" style="margin-right:8px;"></i>지금 이 순간 사진 저장</button>
             <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event)">
             <div id="photo-gallery" class="photo-grid"></div>
         </section>
@@ -203,6 +278,20 @@
         <button class="nav-item" onclick="switchTab('tab-pack', this)"><i class="fa-solid fa-suitcase"></i><span>준비물</span></button>
         <button class="nav-item" onclick="switchTab('tab-spots', this)"><i class="fa-solid fa-image"></i><span>갤러리</span></button>
     </nav>
+
+    <div id="guide-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'">
+        <div class="modal-content">
+            <h3 style="color:var(--text-main); font-weight:800; margin-top:0; font-size: 20px;">가이드 🚀</h3>
+            <p style="font-size:15px; line-height:1.6; color:var(--text-sub); margin-bottom: 24px;">
+                1. 계획을 엑셀로 정리<br>
+                2. 제이미에게 JSON 변환 요청<br>
+                3. 구글 시트 <b>Library</b> 탭에 복사<br>
+                4. A열에 '도시_일수' 명칭 입력<br>
+                5. 앱에서 일정 생성 클릭!
+            </p>
+            <button class="btn-base primary-btn" onclick="document.getElementById('guide-modal').style.display='none'">확인했습니다</button>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
