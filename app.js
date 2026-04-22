@@ -1,5 +1,5 @@
 // ⭐ 배포 웹앱 URL을 입력하세요!
-const GAS_URL = "여기에_배포된_URL_입력"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbymwwB1Pmm2QG1POBROrabv6zUvzP6gPB84eIevswclWvsA1hhTKCOa86VbilN0UT2a5w/exec"; 
 
 let totalBudget = 0;
 let usedBudget = 0;
