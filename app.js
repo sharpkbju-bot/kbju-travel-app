@@ -40,16 +40,14 @@ function switchTab(tabId, element) {
     window.scrollTo(0, 0);
 }
 
-// 구글 맵스 숙소 검색 로직
 function searchGoogleMapsHotel() {
-    const loc = document.getElementById('travel-location').value;
-    const accom = document.getElementById('travel-accommodation').value;
+    const loc = document.getElementById('travel-location')?.value || '';
+    const accom = document.getElementById('travel-accommodation')?.value || '';
     if (!loc) return alert("여행 목적지를 먼저 입력해주세요!");
     const query = encodeURIComponent(`${loc} ${accom || '호텔'}`);
     window.open(`https://www.google.com/maps/search/?api=1&query=$${query}`, '_blank');
 }
 
-// 일정 화면 초기화
 window.resetScheduleScreen = function() {
     if(!confirm("화면의 일정을 초기화하시겠습니까?")) return;
     document.getElementById('schedule-container').innerHTML = '<div style="text-align: center; padding: 40px 0; color: var(--text-sub); font-size: 14px;">설정 탭에서 일정을 생성해주세요.</div>';
@@ -58,21 +56,25 @@ window.resetScheduleScreen = function() {
     alert("초기화 완료");
 };
 
-// 날씨 및 통화 변경
 async function updateWeatherAndCurrency() {
-    const loc = document.getElementById('travel-location').value;
+    const loc = document.getElementById('travel-location')?.value || '';
     const cur = document.getElementById('expense-currency');
-    if (/일본|오사카|도쿄|후쿠오카|삿포로|교토/.test(loc)) cur.value = 'JPY';
-    else if (/태국|방콕|푸껫|푸켓|치앙마이|파타야/.test(loc)) cur.value = 'THB';
-    else if (/베트남|다낭|나트랑|냐짱|하노이|호치민|푸꾸옥/.test(loc)) cur.value = 'VND';
-    else if (/대만|타이베이|가오슝/.test(loc)) cur.value = 'TWD';
-    else if (/필리핀|세부|보라카이|마닐라|보홀/.test(loc)) cur.value = 'PHP';
-    else if (/미국|하와이|괌|사이판|뉴욕|LA/.test(loc)) cur.value = 'USD';
-    else if (/유럽|프랑스|이탈리아|독일|스페인|파리|로마/.test(loc)) cur.value = 'EUR';
-    else cur.value = 'KRW';
+    if (!loc) return;
+
+    if (cur) {
+        if (/일본|오사카|도쿄|후쿠오카|삿포로|교토/.test(loc)) cur.value = 'JPY';
+        else if (/태국|방콕|푸껫|푸켓|치앙마이|파타야/.test(loc)) cur.value = 'THB';
+        else if (/베트남|다낭|나트랑|냐짱|하노이|호치민|푸꾸옥/.test(loc)) cur.value = 'VND';
+        else if (/대만|타이베이|가오슝/.test(loc)) cur.value = 'TWD';
+        else if (/필리핀|세부|보라카이|마닐라|보홀/.test(loc)) cur.value = 'PHP';
+        else if (/미국|하와이|괌|사이판|뉴욕|LA/.test(loc)) cur.value = 'USD';
+        else if (/유럽|프랑스|이탈리아|독일|스페인|파리|로마/.test(loc)) cur.value = 'EUR';
+        else cur.value = 'KRW';
+    }
 
     const weatherCard = document.getElementById('weather-info-card');
-    if (!loc || !travelStartDate) return;
+    if (!travelStartDate || !weatherCard) return;
+    
     weatherCard.style.display = 'flex';
     weatherCard.innerHTML = `<div style="font-size:13px; color:#fff; font-weight:800;"><i class="fa-solid fa-spinner fa-spin"></i> 날씨 조회 중...</div>`;
     try {
@@ -87,17 +89,17 @@ async function updateWeatherAndCurrency() {
     } catch (e) { weatherCard.style.display = 'none'; }
 }
 
-// ⭐ 일정 생성 (예산, 명소, 준비물 연동 복구 완료)
+// ⭐ 방어적 프로그래밍 적용 (Null 에러 원천 차단)
 async function generatePlan() {
-    const loc = document.getElementById('travel-location').value;
-    const type = document.getElementById('travel-type').value;
-    const members = document.getElementById('travel-members').value;
-    const dest = document.getElementById('travel-destination').value;
-    const days = document.getElementById('travel-days').value;
-    const budget = document.getElementById('travel-budget').value;
-    const requests = document.getElementById('travel-requests').value;
+    const loc = document.getElementById('travel-location')?.value || '';
+    const type = document.getElementById('travel-type')?.value || '';
+    const members = document.getElementById('travel-members')?.value || '';
+    const dest = document.getElementById('travel-destination')?.value || 'default';
+    const days = document.getElementById('travel-days')?.value || '';
+    const budget = document.getElementById('travel-budget')?.value || '0';
+    const requests = document.getElementById('travel-requests')?.value || '';
 
-    if (!loc || !days) return alert("목적지와 날짜를 선택하세요!");
+    if (!loc || !days) return alert("필수 항목(목적지, 기간)을 입력하세요!");
 
     showLoading(true, "데이터를 불러오는 중...");
     try {
@@ -116,15 +118,11 @@ async function generatePlan() {
             currentAiLoc = loc;
             currentAiDest = dest;
             
-            // 1. 일정 및 꿀팁 렌더링
             renderAiSchedule(currentAiPlanData, loc, requests);
             buildTravelTipsAndFood(loc, JSON.parse(result.tips), JSON.parse(result.restaurants));
-            
-            // 2. 명소 및 준비물 렌더링
             buildDynamicSpots(loc, dest);
             buildDynamicPack(loc, dest);
             
-            // ⭐ 3. 예산 연동 처리
             totalBudget = Number(budget) || 0; 
             usedBudget = 0; 
             updateBudgetUI();
@@ -142,6 +140,7 @@ async function generatePlan() {
 
 function renderAiSchedule(data, loc, req) {
     const container = document.getElementById('schedule-container');
+    if(!container) return;
     container.innerHTML = '';
     
     if(!data || data.length === 0) {
@@ -169,7 +168,7 @@ function renderAiSchedule(data, loc, req) {
 
 function buildTravelTipsAndFood(location, tips, food) {
     const container = document.getElementById('tips-food-container');
-    if (!location) return;
+    if (!container || !location) return;
     container.style.display = 'block';
     let html = `<div style="margin-bottom:12px;"><h3 style="color:var(--primary-dark); font-weight:800;">💡 ${location} 핵심 가이드</h3></div><div class="horizontal-scroll">`;
     html += `<div class="mini-card" style="border-radius:16px; border:1px solid var(--border-color);">
@@ -190,6 +189,7 @@ function buildTravelTipsAndFood(location, tips, food) {
 
 function buildDynamicSpots(location, destType) {
     const container = document.getElementById('spots-container');
+    if(!container) return;
     container.innerHTML = ''; 
     if (!location) {
         container.innerHTML = '<div style="text-align:center; color:var(--text-sub); padding:40px 0;">여행지를 설정하시면 명소가 추천됩니다.</div>';
@@ -237,6 +237,8 @@ function buildDynamicSpots(location, destType) {
 function buildDynamicPack(loc, destType) {
     const container = document.getElementById('pack-container');
     const addBox = document.getElementById('pack-add-box');
+    if(!container || !addBox) return;
+    
     Array.from(container.children).forEach(c => { if(c.id !== 'pack-add-box') c.remove(); });
     
     let items = ["여권 및 신분증 사본", "항공/숙소 바우처 인쇄본", "해외 결제용 카드", "비상약 및 멀티 어댑터"];
@@ -258,7 +260,7 @@ function buildDynamicPack(loc, destType) {
 }
 
 function addPackItem() {
-    const val = document.getElementById('pack-input').value.trim();
+    const val = document.getElementById('pack-input')?.value.trim();
     if(!val) return;
     const id = 'manual-pack-' + Date.now();
     const html = `
@@ -273,17 +275,15 @@ function addPackItem() {
 
 async function syncPackData() { alert("체크리스트가 동기화되었습니다!"); }
 
-// ⭐ 예산 화면 UI 업데이트
 function updateBudgetUI() {
     document.getElementById('display-budget').innerText = totalBudget.toLocaleString() + " 원";
     document.getElementById('used-budget').innerText = usedBudget.toLocaleString() + " 원";
     document.getElementById('remaining-budget').innerText = (totalBudget - usedBudget).toLocaleString() + " 원";
 }
 
-// 예산 추가
 async function addExpense() {
-    const n = document.getElementById('expense-name').value;
-    const a = Number(document.getElementById('expense-amount').value);
+    const n = document.getElementById('expense-name')?.value;
+    const a = Number(document.getElementById('expense-amount')?.value);
     if (!n || !a) return alert("내역과 금액을 입력하세요.");
     showLoading(true, "저장 중...");
     try {
@@ -318,6 +318,7 @@ async function fetchServerData() {
         const res = await fetch(GAS_URL);
         const result = await res.json();
         const gallery = document.getElementById('photo-gallery');
+        if(!gallery) return;
         gallery.innerHTML = '';
         const photos = result.data.filter(r => r[1] === "PHOTO").reverse();
         if (photos.length === 0) {
